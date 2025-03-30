@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>公文档案模板</title>
+    <style>
+        body {
+            font-family: SimSun, serif;
+            margin: 40px;
+            line-height: 1.6;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .title {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+        .document-info {
+            margin: 20px 0;
+        }
+        .document-info p {
+            margin: 5px 0;
+        }
+        .content {
+            margin: 20px 0;
+            text-indent: 2em;
+        }
+        .footer {
+            margin-top: 40px;
+        }
+        .signature {
+            float: right;
+            margin: 20px 50px;
+        }
+        .clearfix::after {
+            content: "";
+            clear: both;
+            display: table;
+        }
+        .metadata {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 20px 0;
+        }
+        .metadata td {
+            border: 1px solid #000;
+            padding: 8px;
+        }
+        .metadata td:first-child {
+            width: 120px;
+            background-color: #f5f5f5;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="title">[[${title}]]</div>
+        <div>文号：[[${documentNumber}]]</div>
+    </div>
+
+    <table class="metadata">
+        <tr>
+            <td>档案编号</td>
+            <td>[[${archiveNumber}]]</td>
+            <td>密级</td>
+            <td>[[${securityLevel}]]</td>
+        </tr>
+        <tr>
+            <td>拟稿部门</td>
+            <td>[[${department}]]</td>
+            <td>拟稿日期</td>
+            <td>[[${draftDate}]]</td>
+        </tr>
+        <tr>
+            <td>主送单位</td>
+            <td colspan="3">[[${mainRecipient}]]</td>
+        </tr>
+    </table>
+
+    <div class="content">
+        [[${content}]]
+    </div>
+
+    <div class="footer clearfix">
+        <div class="signature">
+            <p>签发人：[[${signer}]]</p>
+            <p>[[${signDate}]]</p>
+        </div>
+    </div>
+</body>
+</html> 

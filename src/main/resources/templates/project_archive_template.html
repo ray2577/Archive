@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>项目档案模板</title>
+    <style>
+        body {
+            font-family: SimSun, serif;
+            margin: 40px;
+            line-height: 1.6;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .title {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        .info-table td {
+            border: 1px solid #000;
+            padding: 8px;
+        }
+        .info-table td:nth-child(odd) {
+            width: 150px;
+            background-color: #f5f5f5;
+        }
+        .section {
+            margin: 20px 0;
+        }
+        .section-title {
+            font-weight: bold;
+            margin: 10px 0;
+            padding: 5px 10px;
+            background-color: #f5f5f5;
+            border-left: 4px solid #333;
+        }
+        .milestone-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 10px 0;
+        }
+        .milestone-table th, .milestone-table td {
+            border: 1px solid #000;
+            padding: 8px;
+            text-align: center;
+        }
+        .milestone-table th {
+            background-color: #f5f5f5;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="title">项目档案</div>
+        <div>档案编号：[[${archiveNumber}]]</div>
+    </div>
+
+    <table class="info-table">
+        <tr>
+            <td>项目名称</td>
+            <td>[[${projectName}]]</td>
+            <td>项目编号</td>
+            <td>[[${projectNumber}]]</td>
+        </tr>
+        <tr>
+            <td>项目类型</td>
+            <td>[[${projectType}]]</td>
+            <td>项目级别</td>
+            <td>[[${projectLevel}]]</td>
+        </tr>
+        <tr>
+            <td>立项日期</td>
+            <td>[[${startDate}]]</td>
+            <td>预计完成日期</td>
+            <td>[[${expectedEndDate}]]</td>
+        </tr>
+        <tr>
+            <td>项目负责人</td>
+            <td>[[${projectManager}]]</td>
+            <td>所属部门</td>
+            <td>[[${department}]]</td>
+        </tr>
+        <tr>
+            <td>项目预算</td>
+            <td>[[${budget}]]</td>
+            <td>实际支出</td>
+            <td>[[${actualCost}]]</td>
+        </tr>
+    </table>
+
+    <div class="section">
+        <div class="section-title">项目概述</div>
+        <div>[[${projectSummary}]]</div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">项目目标</div>
+        <div>[[${projectObjectives}]]</div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">项目里程碑</div>
+        <table class="milestone-table">
+            <thead>
+                <tr>
+                    <th>里程碑</th>
+                    <th>计划完成时间</th>
+                    <th>实际完成时间</th>
+                    <th>状态</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="milestone : ${milestones}">
+                    <td>[[${milestone.name}]]</td>
+                    <td>[[${milestone.plannedDate}]]</td>
+                    <td>[[${milestone.actualDate}]]</td>
+                    <td>[[${milestone.status}]]</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="section">
+        <div class="section-title">项目成员</div>
+        <div>[[${projectMembers}]]</div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">主要风险</div>
+        <div>[[${projectRisks}]]</div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">相关文档</div>
+        <div>[[${relatedDocuments}]]</div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">项目总结</div>
+        <div>[[${projectConclusion}]]</div>
+    </div>
+
+    <div style="margin-top: 40px;">
+        <p>档案管理员：[[${archivist}]]</p>
+        <p>归档日期：[[${archiveDate}]]</p>
+    </div>
+</body>
+</html> 

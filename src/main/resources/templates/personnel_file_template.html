@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>人事档案模板</title>
+    <style>
+        body {
+            font-family: SimSun, serif;
+            margin: 40px;
+            line-height: 1.6;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .title {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+        .photo-area {
+            float: right;
+            width: 120px;
+            height: 160px;
+            border: 1px solid #000;
+            text-align: center;
+            line-height: 160px;
+            margin: 10px;
+        }
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        .info-table td {
+            border: 1px solid #000;
+            padding: 8px;
+        }
+        .info-table td:nth-child(odd) {
+            width: 120px;
+            background-color: #f5f5f5;
+            text-align: right;
+        }
+        .section {
+            margin: 20px 0;
+        }
+        .section-title {
+            font-weight: bold;
+            margin: 10px 0;
+            border-bottom: 2px solid #000;
+            padding-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="title">人事档案</div>
+        <div>档案编号：[[${archiveNumber}]]</div>
+    </div>
+
+    <div class="photo-area">照片</div>
+
+    <table class="info-table">
+        <tr>
+            <td>姓名</td>
+            <td>[[${name}]]</td>
+            <td>性别</td>
+            <td>[[${gender}]]</td>
+        </tr>
+        <tr>
+            <td>出生日期</td>
+            <td>[[${birthDate}]]</td>
+            <td>民族</td>
+            <td>[[${ethnicity}]]</td>
+        </tr>
+        <tr>
+            <td>身份证号</td>
+            <td colspan="3">[[${idNumber}]]</td>
+        </tr>
+        <tr>
+            <td>学历</td>
+            <td>[[${education}]]</td>
+            <td>专业</td>
+            <td>[[${major}]]</td>
+        </tr>
+        <tr>
+            <td>入职日期</td>
+            <td>[[${entryDate}]]</td>
+            <td>部门职位</td>
+            <td>[[${position}]]</td>
+        </tr>
+        <tr>
+            <td>联系电话</td>
+            <td>[[${phone}]]</td>
+            <td>电子邮箱</td>
+            <td>[[${email}]]</td>
+        </tr>
+        <tr>
+            <td>家庭住址</td>
+            <td colspan="3">[[${address}]]</td>
+        </tr>
+    </table>
+
+    <div class="section">
+        <div class="section-title">教育经历</div>
+        <div>[[${educationHistory}]]</div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">工作经历</div>
+        <div>[[${workHistory}]]</div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">培训记录</div>
+        <div>[[${trainingRecord}]]</div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">奖惩记录</div>
+        <div>[[${rewardsPunishments}]]</div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">备注</div>
+        <div>[[${remarks}]]</div>
+    </div>
+
+    <div style="margin-top: 40px;">
+        <p>档案管理员：[[${archivist}]]</p>
+        <p>归档日期：[[${archiveDate}]]</p>
+    </div>
+</body>
+</html> 

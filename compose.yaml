@@ -1,0 +1,9 @@
+services:
+#  ollama:
+#    image: 'ollama/ollama:latest'
+#    ports:
+#      - '11434'
+  redis:
+    image: 'redis:latest'
+    ports:
+      - '6379'
