@@ -48,6 +48,12 @@ const routes = [
         meta: { title: '借阅管理', parent: { title: '档案管理', path: '/archive' } }
       },
       {
+        path: 'add',
+        name: 'ArchiveAdd',
+        component: () => import('@/views/archive/ArchiveEdit.vue'),
+        meta: { title: '档案新增', parent: { title: '档案管理', path: '/archive' }, hidden: true }
+      },
+      {
         path: 'detail/:id',
         name: 'ArchiveDetail',
         component: () => import('@/views/archive/ArchiveDetail.vue'),

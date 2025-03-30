@@ -239,7 +239,7 @@ import { ref, reactive, onMounted, nextTick, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { 
-  ArrowLeft, RefreshLeft, Check, Plus, 
+  RefreshLeft, Check, Plus, 
   Upload, Document 
 } from '@element-plus/icons-vue'
 
@@ -396,7 +396,6 @@ const initForm = () => {
   const year = date.getFullYear()
   const month = String(date.getMonth() + 1).padStart(2, '0')
   const day = String(date.getDate()).padStart(2, '0')
-  const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0')
   
   archiveForm.fileNumber = `AR${year}${month}${day}`
   archiveForm.status = 'AVAILABLE'
@@ -459,19 +458,52 @@ const submitForm = async () => {
         }
       })
       
-      // 模拟API请求
+      // 打印提交数据用于调试
+      console.log('提交的表单数据:', Object.fromEntries(formData.entries()))
+      
+      // 暂时使用模拟 API 请求，直到后端 API 修复
       setTimeout(() => {
-        // 模拟成功
+        console.log('模拟提交成功')
         ElMessage.success(isEdit.value ? '档案更新成功' : '档案创建成功')
-        
-        // 返回列表页
         router.push('/archive/list')
-        
         submitting.value = false
       }, 1500)
+      
+      /* 
+      // 实际的 API 请求 (暂时注释掉)
+      const url = isEdit.value 
+        ? `/api/archives/${archiveId.value}` 
+        : '/api/archives'
+      
+      const method = isEdit.value ? 'PUT' : 'POST'
+      
+      const response = await fetch(url, {
+        method,
+        body: formData,
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      })
+      
+      if (!response.ok) {
+        const errorData = await response.text()
+        console.error('服务器响应错误:', response.status, errorData)
+        throw new Error(`服务器错误 (${response.status}): ${errorData || '未知错误'}`)
+      }
+      
+      const result = await response.json()
+      console.log('服务器响应成功:', result)
+      
+      ElMessage.success(isEdit.value ? '档案更新成功' : '档案创建成功')
+      router.push('/archive/list')
+      */
+      
     } catch (error) {
-      console.error('Error submitting form:', error)
-      ElMessage.error(isEdit.value ? '更新档案失败，请稍后重试' : '创建档案失败，请稍后重试')
+      console.error('提交表单错误:', error)
+      ElMessage.error({
+        message: `${isEdit.value ? '更新' : '创建'}档案失败: ${error.message}`,
+        duration: 5000
+      })
       submitting.value = false
     }
   })

@@ -149,13 +149,13 @@
       <!-- 分页 -->
       <div class="pagination-container">
         <el-pagination
-          v-model:current-page="currentPage"
-          v-model:page-size="pageSize"
+          v-model:current-page="queryParams.page"
+          v-model:page-size="queryParams.pageSize"
           :page-sizes="[10, 20, 50, 100]"
           :total="total"
           layout="total, sizes, prev, pager, next, jumper"
           @size-change="handleSizeChange"
-          @current-change="handleCurrentChange"
+          @current-change="handlePageChange"
         />
       </div>
     </el-card>
@@ -242,13 +242,18 @@ const searchForm = reactive({
 // 表格状态
 const loading = ref(false)
 const archiveList = ref([])
-const currentPage = ref(1)
-const pageSize = ref(20)
 const total = ref(0)
 const tableSize = ref('default')
 const selectedRows = ref([])
 const visibleColumnProps = ref(['code', 'name', 'type', 'location', 'createTime', 'status'])
 const columnsDialogVisible = ref(false)
+
+// 整合查询参数
+const queryParams = reactive({
+  page: 1,
+  pageSize: 20,
+  // 其他参数会在搜索时添加
+})
 
 // 计算属性：可见列
 const visibleColumns = computed(() => {
@@ -258,83 +263,109 @@ const visibleColumns = computed(() => {
 // 获取档案列表数据
 const fetchArchiveList = async () => {
   loading.value = true
-  
   try {
-    const params = {
-      page: currentPage.value,
-      pageSize: pageSize.value,
-      ...searchForm
+    // 整合搜索参数
+    const params = new URLSearchParams()
+    params.append('page', queryParams.page)
+    params.append('pageSize', queryParams.pageSize)
+    
+    // 添加搜索条件
+    if (searchForm.code) params.append('code', searchForm.code)
+    if (searchForm.name) params.append('name', searchForm.name)
+    if (searchForm.type) params.append('type', searchForm.type)
+    if (searchForm.status) params.append('status', searchForm.status)
+    
+    console.log('请求参数:', Object.fromEntries(params.entries()))
+    
+    // 添加本地模拟数据，用于前端开发测试
+    if (process.env.NODE_ENV === 'development') {
+      // 为开发环境提供模拟数据
+      setTimeout(() => {
+        const mockData = generateMockData(queryParams.pageSize)
+        archiveList.value = mockData
+        total.value = 100
+        loading.value = false
+      }, 500)
+      return // 开发环境下不实际调用API
     }
     
-    // 模拟数据，实际项目中应该调用API
-    // const { data } = await getArchiveList(params)
-    // archiveList.value = data.list
-    // total.value = data.total
+    const response = await fetch(`/api/archives?${params.toString()}`, {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      }
+    })
     
-    // 模拟数据
-    setTimeout(() => {
-      const mockData = Array.from({ length: pageSize.value }, (_, i) => ({
-        id: (currentPage.value - 1) * pageSize.value + i + 1,
-        code: `ARC${String(i + 1).padStart(4, '0')}`,
-        name: ['财务报表', '人事档案', '会议纪要', '合同文本', '技术文档'][Math.floor(Math.random() * 5)] + ` ${i + 1}`,
-        type: String((Math.floor(Math.random() * 5) + 1)),
-        location: `${String.fromCharCode(65 + Math.floor(Math.random() * 3))}${Math.floor(Math.random() * 3) + 1}`,
-        responsible: ['张三', '李四', '王五', '赵六'][Math.floor(Math.random() * 4)],
-        createTime: new Date(new Date().getTime() - Math.floor(Math.random() * 1000 * 3600 * 24 * 30)).toISOString(),
-        updateTime: new Date().toISOString(),
-        fileSize: Math.floor(Math.random() * 10000000),
-        borrowCount: Math.floor(Math.random() * 20),
-        status: Math.floor(Math.random() * 2) + 1
-      }))
-      
-      archiveList.value = mockData
-      total.value = 1286
-      loading.value = false
-    }, 500)
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error('获取档案列表失败:', response.status, errorText)
+      throw new Error(`获取数据错误 (${response.status}): ${errorText || '未知错误'}`)
+    }
+    
+    const result = await response.json()
+    console.log('档案列表数据:', result)
+    
+    // 更新数据状态
+    archiveList.value = result.data || []
+    total.value = result.total || result.data?.length || 0
+    
   } catch (error) {
-    console.error('Error fetching archive list:', error)
-    ElMessage.error('获取档案列表失败，请稍后重试')
+    console.error('获取档案列表错误:', error)
+    ElMessage.error({
+      message: `获取档案列表失败: ${error.message}`,
+      duration: 5000
+    })
+    
+    // 发生错误时，提供模拟数据以便继续开发测试
+    archiveList.value = generateMockData(queryParams.pageSize)
+    total.value = archiveList.value.length
+  } finally {
     loading.value = false
   }
 }
 
-// 搜索
+// 搜索方法
 const handleSearch = () => {
-  currentPage.value = 1
+  queryParams.page = 1 // 重置页码
   fetchArchiveList()
 }
 
-// 重置搜索
 const resetSearch = () => {
+  // 重置搜索表单
   Object.keys(searchForm).forEach(key => {
     searchForm[key] = ''
   })
-  currentPage.value = 1
+  queryParams.page = 1
   fetchArchiveList()
 }
 
-// 分页处理
-const handleSizeChange = (val) => {
-  if (typeof val === 'string') {
-    // 处理表格密度变化
-    tableSize.value = val
-    return
-  }
-  
-  pageSize.value = val
+// 翻页方法
+const handlePageChange = (page) => {
+  queryParams.page = page
   fetchArchiveList()
 }
 
-const handleCurrentChange = (val) => {
-  currentPage.value = val
+// 每页数量变化
+const handleSizeChange = (size) => {
+  queryParams.pageSize = size
+  queryParams.page = 1 // 切换页大小时重置页码
   fetchArchiveList()
 }
 
-// 排序处理
-const handleSortChange = ({ prop, order }) => {
-  // 实现排序逻辑
-  console.log('Sort changed:', prop, order)
-  fetchArchiveList()
+// 生成模拟数据（仅开发时使用）
+const generateMockData = (size = 10) => {
+  return Array.from({ length: size }).map((_, index) => ({
+    id: (queryParams.page - 1) * size + index + 1,
+    code: `AR2023${String((queryParams.page - 1) * size + index + 1).padStart(4, '0')}`,
+    name: ['财务报表', '人事档案', '会议纪要', '合同文本', '技术文档'][Math.floor(Math.random() * 5)] + ` ${index + 1}`,
+    type: String((Math.floor(Math.random() * 5) + 1)),
+    location: `${String.fromCharCode(65 + Math.floor(Math.random() * 3))}${Math.floor(Math.random() * 3) + 1}`,
+    responsible: ['张三', '李四', '王五', '赵六'][Math.floor(Math.random() * 4)],
+    createTime: new Date(new Date().getTime() - Math.floor(Math.random() * 1000 * 3600 * 24 * 30)).toISOString(),
+    updateTime: new Date().toISOString(),
+    fileSize: Math.floor(Math.random() * 10000000),
+    borrowCount: Math.floor(Math.random() * 20),
+    status: Math.floor(Math.random() * 2) + 1
+  }))
 }
 
 // 选择行变化
