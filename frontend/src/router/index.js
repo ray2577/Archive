@@ -73,6 +73,32 @@ const routes = [
       }
     ]
   },
+  {
+    path: '/document',
+    component: MainLayout,
+    redirect: '/document/list',
+    meta: { title: '文档管理', icon: 'Document' },
+    children: [
+      {
+        path: 'list',
+        name: 'DocumentList',
+        component: () => import('@/views/document/DocumentList.vue'),
+        meta: { title: '文档列表', parent: { title: '文档管理', path: '/document' } }
+      },
+      {
+        path: 'category',
+        name: 'DocumentCategory',
+        component: () => import('@/views/document/DocumentCategory.vue'),
+        meta: { title: '分类管理', parent: { title: '文档管理', path: '/document' } }
+      },
+      {
+        path: 'detail/:id',
+        name: 'DocumentDetail',
+        component: () => import('@/views/document/DocumentDetail.vue'),
+        meta: { title: '文档详情', parent: { title: '文档管理', path: '/document' }, hidden: true }
+      }
+    ]
+  },
   
   {
     path: '/numberrule',
@@ -82,7 +108,7 @@ const routes = [
         path: 'rule',
         name: 'ArchiveNumberRule',
         component: () => import('@/views/numberrule/ArchiveNumberRule.vue'),
-        meta: { title: '档案规则', icon: 'ChatDotRound' }
+        meta: { title: '档案规则管理', icon: 'Collection' }
       }
     ]
   },
@@ -95,19 +121,19 @@ const routes = [
         path: 'model',
         name: 'Template',
         component: () => import('@/views/template/templateView.vue'),
-        meta: { title: '档案模板管理', icon: '' }
+        meta: { title: '档案模板管理', icon: 'Grid' }
       }
     ]
   },
   {
-    path: '/archivemMerge',
+    path: '/archiveMerge',
     component: MainLayout,
     children: [
       {
         path: 'merge',
         name: 'Merge',
         component: () => import('@/views/merge/PdfMergeView.vue'),
-        meta: { title: '档案模板管理', icon: '' }
+        meta: { title: '档案合并管理', icon: 'DocumentCopy' }
       }
     ]
   },
@@ -150,6 +176,32 @@ const routes = [
     ]
   },
   {
+    path: '/workflow',
+    component: MainLayout,
+    redirect: '/workflow/tasks',
+    meta: { title: '工作流管理', icon: 'Operation' },
+    children: [
+      {
+        path: 'tasks',
+        name: 'WorkflowTasks',
+        component: () => import('@/views/workflow/WorkflowTasks.vue'),
+        meta: { title: '待办任务', parent: { title: '工作流管理', path: '/workflow' } }
+      },
+      {
+        path: 'process',
+        name: 'WorkflowProcess',
+        component: () => import('@/views/workflow/WorkflowProcess.vue'),
+        meta: { title: '流程管理', parent: { title: '工作流管理', path: '/workflow' } }
+      },
+      {
+        path: 'history',
+        name: 'WorkflowHistory',
+        component: () => import('@/views/workflow/WorkflowHistory.vue'),
+        meta: { title: '审批历史', parent: { title: '工作流管理', path: '/workflow' } }
+      }
+    ]
+  },
+  {
     path: '/profile',
     component: MainLayout,
     children: [
@@ -161,7 +213,31 @@ const routes = [
       }
     ]
   },
- 
+  {
+    path: '/backup',
+    component: MainLayout,
+    meta: { title: '备份恢复', icon: 'DataBoard', roles: ['admin'] },
+    children: [
+      {
+        path: 'data-backup',
+        name: 'DataBackup',
+        component: () => import('@/views/backup/DataBackup.vue'),
+        meta: { title: '数据备份', parent: { title: '备份恢复', path: '/backup' } }
+      },
+      {
+        path: 'data-restore',
+        name: 'DataRestore',
+        component: () => import('@/views/backup/DataRestore.vue'),
+        meta: { title: '数据恢复', parent: { title: '备份恢复', path: '/backup' } }
+      },
+      {
+        path: 'backup-plan',
+        name: 'BackupPlan',
+        component: () => import('@/views/backup/DataBackupPlan.vue'),
+        meta: { title: '备份计划', parent: { title: '备份恢复', path: '/backup' } }
+      }
+    ]
+  },
   {
     path: '/404',
     component: () => import('@/views/error/404.vue'),
@@ -193,6 +269,24 @@ const routes = [
     ]
   },
   {
+    path: '/chat',
+    component: MainLayout,
+    children: [
+      {
+        path: 'index',
+        name: 'Chat',
+        component: () => import('@/views/chat/index.vue'),
+        meta: { title: 'AI助手', icon: 'chat' }
+      },
+      {
+        path: 'statistics',
+        name: 'ChatStatistics',
+        component: () => import('@/views/chat/statistics.vue'),
+        meta: { title: '使用统计', icon: 'pie-chart' }
+      }
+    ]
+  },
+  {
     path: '/:pathMatch(.*)*',
     redirect: '/404',
     meta: { hidden: true }
@@ -210,7 +304,7 @@ router.beforeEach(async (to, from, next) => {
   document.title = to.meta.title ? `${to.meta.title} - 档案管理系统` : '档案管理系统'
   
   const userStore = useUserStore()
-  const { token, isLoggedIn } = userStore
+  const { isLoggedIn } = userStore
   
   // 白名单路径，不需要登录
   const whiteList = ['/login', '/404']

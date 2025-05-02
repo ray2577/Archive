@@ -25,31 +25,45 @@
           <el-icon><Folder /></el-icon>
           <span>档案管理</span>
         </template>
-        <el-menu-item index="/archive/list">档案列表</el-menu-item>
-        <el-menu-item index="/archive/search">高级搜索</el-menu-item>
-        <el-menu-item index="/archive/borrow">借阅管理</el-menu-item>
+        <el-menu-item index="/archive/list">
+          <el-icon><Document /></el-icon>档案列表
+        </el-menu-item>
+        <el-menu-item index="/archive/search">
+          <el-icon><Search /></el-icon>高级搜索
+        </el-menu-item>
+        <el-menu-item index="/archive/borrow">
+          <el-icon><Files /></el-icon>借阅管理
+        </el-menu-item>
       </el-sub-menu>
     
       <el-sub-menu index="/numberrule">
         <template #title>
+          <el-icon><Collection /></el-icon>
           <span>档案规则管理</span>
         </template>
-         <el-menu-item index="/numberrule/rule">档案规则管理</el-menu-item>
-
+         <el-menu-item index="/numberrule/rule">
+          <el-icon><List /></el-icon>规则列表
+         </el-menu-item>
       </el-sub-menu>
 
-      <el-sub-menu index="/archivemMerge">
+      <el-sub-menu index="/archiveMerge">
         <template #title>
+          <el-icon><DocumentCopy /></el-icon>
           <span>档案合并管理</span>
         </template>
-              <el-menu-item index="/archivemMerge/merge">档案合并管理</el-menu-item>
+        <el-menu-item index="/archiveMerge/merge">
+          <el-icon><Histogram /></el-icon>合并列表
+        </el-menu-item>
       </el-sub-menu>
 
       <el-sub-menu index="/template">
         <template #title>
+          <el-icon><Grid /></el-icon>
           <span>档案模板管理</span>
         </template>
-          <el-menu-item index="/template/model">档案模板管理</el-menu-item>
+        <el-menu-item index="/template/model">
+          <el-icon><Menu /></el-icon>模板列表
+        </el-menu-item>
       </el-sub-menu>
 
       <el-menu-item index="/ai-assistant">
@@ -62,20 +76,26 @@
         <template #title>统计分析</template>
       </el-menu-item>
       
-      <el-menu-item index="/profile" class="profile-link">
-        <el-icon><User /></el-icon>
-        <template #title>个人中心</template>
-      </el-menu-item>
-      
       <el-sub-menu index="/system" v-if="userStore.isAdmin">
         <template #title>
           <el-icon><Setting /></el-icon>
           <span>系统管理</span>
         </template>
-        <el-menu-item index="/system/users">用户管理</el-menu-item>
-        <el-menu-item index="/system/roles">角色权限</el-menu-item>
-        <el-menu-item index="/system/logs">系统日志</el-menu-item>
+        <el-menu-item index="/system/users">
+          <el-icon><UserFilled /></el-icon>用户管理
+        </el-menu-item>
+        <el-menu-item index="/system/roles">
+          <el-icon><Lock /></el-icon>角色权限
+        </el-menu-item>
+        <el-menu-item index="/system/logs">
+          <el-icon><Tickets /></el-icon>系统日志
+        </el-menu-item>
       </el-sub-menu>
+      
+      <el-menu-item index="/profile" class="profile-link">
+        <el-icon><User /></el-icon>
+        <template #title>个人中心</template>
+      </el-menu-item>
     </el-menu>
     
     <!-- 主内容区 -->
@@ -147,7 +167,8 @@ import { useUserStore } from '@/stores/user'
 import { ElMessageBox } from 'element-plus'
 import {
   Monitor, Folder, ChatDotRound, DataLine, User, Setting,
-  Fold, Expand, ArrowDown, SwitchButton
+  Fold, Expand, ArrowDown, SwitchButton,
+  Document, Search, Files, Collection, List, DocumentCopy, Histogram, Grid, Menu, UserFilled, Lock, Tickets
 } from '@element-plus/icons-vue'
 
 // 用户信息
@@ -275,6 +296,7 @@ onMounted(() => {
   justify-content: center;
   align-items: center;
   overflow: hidden;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .logo {
@@ -287,10 +309,41 @@ onMounted(() => {
   width: 32px;
 }
 
+/* 菜单样式优化 */
+:deep(.el-menu-item) {
+  height: 50px;
+  line-height: 50px;
+}
+
+:deep(.el-sub-menu__title) {
+  height: 50px;
+  line-height: 50px;
+}
+
+:deep(.el-menu-item.is-active) {
+  background-color: #1890ff !important;
+}
+
+:deep(.el-menu-item:hover) {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+:deep(.el-sub-menu__title:hover) {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+:deep(.el-menu-item) .el-icon, 
+:deep(.el-sub-menu__title) .el-icon {
+  margin-right: 10px;
+  font-size: 18px;
+  vertical-align: middle;
+}
+
 .profile-link {
   position: absolute;
   bottom: 16px;
   width: calc(100% - 1px);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .main-container {

@@ -2,14 +2,17 @@ package com.ray.archive.service.impl;
 
 import com.ray.archive.entity.Archive;
 import com.ray.archive.entity.ChatHistory;
+import com.ray.archive.entity.ChatSession;
 import com.ray.archive.entity.User;
 import com.ray.archive.repository.ArchiveRepository;
 import com.ray.archive.repository.ChatHistoryRepository;
+import com.ray.archive.repository.ChatSessionRepository;
 import com.ray.archive.repository.UserRepository;
 import com.ray.archive.service.AiChatService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -25,6 +28,8 @@ import java.util.regex.Pattern;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import com.ray.archive.entity.ChatSession;
+import com.ray.archive.repository.ChatSessionRepository;
 
 @Service
 @Transactional
@@ -40,6 +45,9 @@ public class AiChatServiceImpl implements AiChatService {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private ChatSessionRepository chatSessionRepository;
+
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final Map<String, AtomicInteger> queryFrequencyMap = new ConcurrentHashMap<>();
     private final Map<Long, String> userContext = new ConcurrentHashMap<>();
@@ -49,7 +57,7 @@ public class AiChatServiceImpl implements AiChatService {
     private final Map<String, List<FailureReason>> failureReasons = new ConcurrentHashMap<>();
 
     @Override
-    public Map<String, Object> processQuery(String query, Long userId) {
+    public Map<String, Object> processQuery(String query, Long userId, String sessionId) {
         Assert.hasText(query, "Query cannot be empty");
         Assert.notNull(userId, "User ID cannot be null");
         
@@ -82,6 +90,7 @@ public class AiChatServiceImpl implements AiChatService {
             result.put("recommendations", recommendations);
             result.put("queryType", intent.getType());
             result.put("processingTime", System.currentTimeMillis() - startTime);
+            result.put("sessionId", sessionId);
             
             logger.info("Query processed successfully in {}ms", System.currentTimeMillis() - startTime);
             return result;
@@ -900,9 +909,10 @@ public class AiChatServiceImpl implements AiChatService {
         List<String> recommendations = new ArrayList<>();
         
         // 1. 基于用户历史行为推荐
-        List<ChatHistory> userHistory = chatHistoryRepository.findByUserIdOrderByCreateTimeDesc(
+        Page<ChatHistory> userHistoryPage = chatHistoryRepository.findByUser_IdOrderByCreateTimeDesc(
             userId, PageRequest.of(0, 5)
         );
+        List<ChatHistory> userHistory = userHistoryPage.getContent();
         
         // 2. 基于当前查询意图推荐
         QueryIntent intent = analyzeQueryIntent(query);
@@ -1093,9 +1103,10 @@ public class AiChatServiceImpl implements AiChatService {
         Map<String, Integer> preferences = new HashMap<>();
         
         // 1. 分析历史查询
-        List<ChatHistory> history = chatHistoryRepository.findByUserIdOrderByCreateTimeDesc(
+        Page<ChatHistory> historyPage = chatHistoryRepository.findByUser_IdOrderByCreateTimeDesc(
             userId, PageRequest.of(0, 100));
-            
+        List<ChatHistory> history = historyPage.getContent();
+        
         // 2. 统计关键词频率
         for (ChatHistory chat : history) {
             String[] keywords = chat.getQuery().split("\\s+");
@@ -1105,5 +1116,27 @@ public class AiChatServiceImpl implements AiChatService {
         }
         
         return preferences;
+    }
+
+    @Override
+    public void cleanupInactiveSessions(int maxIdleMinutes) {
+        Assert.isTrue(maxIdleMinutes > 0, "Max idle minutes must be greater than 0");
+        
+        logger.info("Cleaning up inactive chat sessions with max idle time {} minutes", maxIdleMinutes);
+        
+        try {
+            LocalDateTime cutoffTime = LocalDateTime.now().minusMinutes(maxIdleMinutes);
+            List<ChatSession> inactiveSessions = chatSessionRepository.findInactiveSessions(cutoffTime);
+            
+            for (ChatSession session : inactiveSessions) {
+                logger.debug("Marking session {} as inactive", session.getId());
+                session.setStatus("INACTIVE");
+                chatSessionRepository.save(session);
+            }
+            
+            logger.info("Successfully cleaned up {} inactive sessions", inactiveSessions.size());
+        } catch (Exception e) {
+            logger.error("Error cleaning up inactive sessions: {}", e.getMessage(), e);
+        }
     }
 } 

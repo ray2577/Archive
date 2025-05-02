@@ -12,9 +12,10 @@ public interface AiChatService {
      * 处理用户查询并返回相关响应
      * @param query 用户查询内容
      * @param userId 用户ID
+     * @param sessionId 会话ID
      * @return 包含回答、相关档案、推荐等信息的Map
      */
-    Map<String, Object> processQuery(String query, Long userId);
+    Map<String, Object> processQuery(String query, Long userId, String sessionId);
 
     /**
      * 搜索相关档案
@@ -71,4 +72,10 @@ public interface AiChatService {
      * @param isSuccessful 是否成功
      */
     void updateLearningModel(Long userId, String query, boolean isSuccessful);
+
+    /**
+     * 清理不活跃的会话
+     * @param maxIdleMinutes 最大空闲分钟数
+     */
+    void cleanupInactiveSessions(int maxIdleMinutes);
 } 

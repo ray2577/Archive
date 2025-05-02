@@ -1,6 +1,7 @@
 package com.ray.archive.repository;
 
 import com.ray.archive.entity.ChatHistory;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -14,16 +15,16 @@ import java.util.List;
 public interface ChatHistoryRepository extends JpaRepository<ChatHistory, Long> {
     
     // 基本查询方法
-    List<ChatHistory> findByUserIdOrderByCreateTimeDesc(Long userId, Pageable pageable);
-    List<ChatHistory> findByUserId(Long userId);
+    Page<ChatHistory> findByUser_IdOrderByCreateTimeDesc(Long userId, Pageable pageable);
+    List<ChatHistory> findByUser_Id(Long userId);
     List<ChatHistory> findByQueryType(String queryType);
     
     // 时间范围查询
     List<ChatHistory> findByCreateTimeBetween(LocalDateTime startTime, LocalDateTime endTime);
     
     // 组合查询
-    List<ChatHistory> findByUserIdAndQueryType(Long userId, String queryType);
-    List<ChatHistory> findByUserIdAndIsHelpful(Long userId, Boolean isHelpful);
+    List<ChatHistory> findByUser_IdAndQueryType(Long userId, String queryType);
+    List<ChatHistory> findByUser_IdAndIsHelpful(Long userId, Boolean isHelpful);
     
     // 最近对话查询
     @Query("SELECT ch FROM ChatHistory ch WHERE ch.user.id = :userId ORDER BY ch.createTime DESC")
@@ -52,4 +53,20 @@ public interface ChatHistoryRepository extends JpaRepository<ChatHistory, Long> 
            "GROUP BY date ORDER BY date")
     List<Object[]> countQueriesByDate(@Param("startTime") LocalDateTime startTime, 
                                      @Param("endTime") LocalDateTime endTime);
+
+    List<ChatHistory> findBySessionIdOrderByCreateTimeAsc(String sessionId);
+    
+    void deleteBySessionId(String sessionId);
+    
+    long countByUser_Id(Long userId);
+    
+    long countByUser_IdAndIsHelpful(Long userId, Boolean isHelpful);
+    
+    @Query("SELECT AVG(ch.relevanceScore) FROM ChatHistory ch WHERE ch.user.id = :userId AND ch.relevanceScore > 0")
+    Double averageRelevanceScoreByUserId(@Param("userId") Long userId);
+    
+    List<ChatHistory> findByUser_IdAndQueryTypeOrderByCreateTimeDesc(Long userId, String queryType, Pageable pageable);
+    
+    @Query("SELECT ch FROM ChatHistory ch WHERE ch.user.id = :userId AND ch.query LIKE %:keyword% ORDER BY ch.createTime DESC")
+    List<ChatHistory> searchByKeyword(@Param("userId") Long userId, @Param("keyword") String keyword, Pageable pageable);
 } 
