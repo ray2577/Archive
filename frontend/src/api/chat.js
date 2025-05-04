@@ -3,7 +3,7 @@ import request from '@/utils/request'
 // 发送聊天消息
 export function sendChatMessage(query, sessionId = null) {
   return request({
-    url: '/api/ai-chat/query',
+    url: '/api/chat/query',
     method: 'post',
     data: {
       query,
@@ -15,7 +15,7 @@ export function sendChatMessage(query, sessionId = null) {
 // 获取聊天历史
 export function getChatHistory(limit = 10) {
   return request({
-    url: '/api/ai-chat/history',
+    url: '/api/chat/history',
     method: 'get',
     params: { limit }
   })
@@ -24,7 +24,7 @@ export function getChatHistory(limit = 10) {
 // 提交反馈
 export function submitFeedback(chatId, feedback) {
   return request({
-    url: `/api/ai-chat/feedback/${chatId}`,
+    url: `/api/chat/feedback/${chatId}`,
     method: 'post',
     data: feedback
   })

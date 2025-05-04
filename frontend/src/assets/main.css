@@ -76,4 +76,28 @@ html, body {
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
+}
+
+/* 添加侧边栏子菜单弹出样式 */
+.sidebar-submenu {
+  background-color: #000c17 !important;
+  border: none !important;
+}
+
+.sidebar-submenu .el-menu {
+  background-color: #000c17 !important;
+}
+
+.sidebar-submenu .el-menu-item {
+  background-color: #000c17 !important;
+  color: #fff !important;
+}
+
+.sidebar-submenu .el-menu-item:hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.sidebar-submenu .el-menu-item.is-active {
+  background-color: #1890ff !important;
+  color: #fff !important;
 } 

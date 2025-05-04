@@ -287,6 +287,15 @@ const routes = [
     ]
   },
   {
+    path: '/api-diagnostic',
+    name: 'ApiDiagnostic',
+    component: () => import('@/views/ApiDiagnostic.vue'),
+    meta: {
+      title: 'API诊断工具',
+      requiresAuth: true
+    }
+  },
+  {
     path: '/:pathMatch(.*)*',
     redirect: '/404',
     meta: { hidden: true }

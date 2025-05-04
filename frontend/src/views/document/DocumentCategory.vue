@@ -17,10 +17,10 @@
             <div class="card-header">
               <span>分类结构</span>
               <div class="header-actions">
-                <el-button type="text" @click="refreshCategoryTree">
+                <el-button type="link" @click="refreshCategoryTree">
                   <el-icon><Refresh /></el-icon>刷新
                 </el-button>
-                <el-button type="text" @click="expandAll">
+                <el-button type="link" @click="expandAll">
                   <el-icon><Fold /></el-icon>展开/折叠
                 </el-button>
               </div>

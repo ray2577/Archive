@@ -10,6 +10,7 @@
       <el-form 
         ref="searchFormRef" 
         :model="searchForm" 
+        :rules="rules"
         label-position="top"
         class="search-form"
       >
@@ -88,6 +89,25 @@
                 placeholder="请输入关键词" 
                 clearable
               />
+            </el-form-item>
+          </el-col>
+          <el-col :xs="24" :sm="12" :md="8" :lg="6">
+            <el-form-item label="标签">
+              <el-select
+                v-model="searchForm.tags"
+                multiple
+                collapse-tags
+                collapse-tags-tooltip
+                placeholder="请选择标签"
+                style="width: 100%"
+              >
+                <el-option
+                  v-for="item in tagOptions"
+                  :key="item.value"
+                  :label="item.label"
+                  :value="item.value"
+                />
+              </el-select>
             </el-form-item>
           </el-col>
           <el-col :xs="24" :sm="12" :md="8" :lg="6">
@@ -200,19 +220,25 @@
               <template #default="scope">
                 <el-button-group>
                   <el-tooltip content="查看">
-                    <el-button type="primary" link @click.stop="viewDetail(scope.row)">
-                      <el-icon><View /></el-icon>
-                    </el-button>
+                    <div>
+                      <el-button type="primary" link @click.stop="viewDetail(scope.row)">
+                        <el-icon><View /></el-icon>
+                      </el-button>
+                    </div>
                   </el-tooltip>
                   <el-tooltip content="借阅">
-                    <el-button type="success" link @click.stop="handleBorrow(scope.row)">
-                      <el-icon><PriceTag /></el-icon>
-                    </el-button>
+                    <div>
+                      <el-button type="success" link @click.stop="handleBorrow(scope.row)">
+                        <el-icon><PriceTag /></el-icon>
+                      </el-button>
+                    </div>
                   </el-tooltip>
                   <el-tooltip content="下载">
-                    <el-button type="warning" link @click.stop="handleDownload(scope.row)">
-                      <el-icon><Download /></el-icon>
-                    </el-button>
+                    <div>
+                      <el-button type="warning" link @click.stop="handleDownload(scope.row)">
+                        <el-icon><Download /></el-icon>
+                      </el-button>
+                    </div>
                   </el-tooltip>
                 </el-button-group>
               </template>
@@ -222,13 +248,15 @@
           <!-- 分页 -->
           <div class="pagination-container">
             <el-pagination
-              v-model:current-page="currentPage"
-              v-model:page-size="pageSize"
+              :current-page="currentPage"
+              :page-size="pageSize"
               :page-sizes="[10, 20, 50, 100]"
               :total="total"
               layout="total, sizes, prev, pager, next, jumper"
               @size-change="handleSizeChange"
               @current-change="handleCurrentChange"
+              @update:current-page="val => currentPage = val"
+              @update:page-size="val => pageSize = val"
             />
           </div>
         </div>
@@ -240,13 +268,20 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, watch } from 'vue'
+import { ref, reactive, computed, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import {
   Search, Refresh, Download, View, PriceTag, ArrowDown
 } from '@element-plus/icons-vue'
-import { searchArchives } from '@/api/archive'
+import { 
+  searchArchives, 
+  downloadArchive, 
+  exportArchives, 
+  getArchiveCategories, 
+  getArchiveTags,
+  getArchiveList
+} from '@/api/archive'
 
 const router = useRouter()
 const searchFormRef = ref(null)
@@ -275,24 +310,74 @@ const searchForm = reactive({
   keyword: '',
   content: '',
   startDate: '',
-  endDate: ''
+  endDate: '',
+  tags: []
 })
 
 // 档案类型选项
 const typeOptions = [
-  { label: '财务类', value: 'FINANCIAL' },
-  { label: '人事类', value: 'PERSONNEL' },
-  { label: '行政类', value: 'ADMINISTRATIVE' },
-  { label: '技术类', value: 'TECHNICAL' },
-  { label: '其他', value: 'OTHER' }
+  { value: 'FINANCIAL', label: '财务类' },
+  { value: 'PERSONNEL', label: '人事类' },
+  { value: 'PROJECT', label: '项目类' },
+  { value: 'CONTRACT', label: '合同类' },
+  { value: 'OTHER', label: '其他' }
 ]
 
 // 档案状态选项
 const statusOptions = [
-  { label: '可借阅', value: 'AVAILABLE' },
-  { label: '已借出', value: 'BORROWED' },
-  { label: '处理中', value: 'PROCESSING' }
+  { value: 'AVAILABLE', label: '可借阅' },
+  { value: 'BORROWED', label: '已借出' },
+  { value: 'PROCESSING', label: '处理中' }
 ]
+
+// 自定义标签
+const tagOptions = ref([])
+
+// 获取标签选项
+const fetchTags = async () => {
+  try {
+    const result = await getArchiveTags()
+    if (result.code === 200) {
+      tagOptions.value = result.data || []
+    }
+  } catch (error) {
+    console.error('获取标签失败:', error)
+  }
+}
+
+// 搜索表单验证规则
+const rules = {
+  keyword: [
+    { min: 2, message: '关键词至少需要2个字符', trigger: 'blur' }
+  ],
+  content: [
+    { min: 4, message: '搜索内容至少需要4个字符', trigger: 'blur' }
+  ],
+  startDate: [
+    { 
+      validator: (rule, value, callback) => {
+        if (value && searchForm.endDate && new Date(value) > new Date(searchForm.endDate)) {
+          callback(new Error('开始时间不能晚于结束时间'));
+        } else {
+          callback();
+        }
+      }, 
+      trigger: 'change' 
+    }
+  ],
+  endDate: [
+    { 
+      validator: (rule, value, callback) => {
+        if (value && searchForm.startDate && new Date(value) < new Date(searchForm.startDate)) {
+          callback(new Error('结束时间不能早于开始时间'));
+        } else {
+          callback();
+        }
+      }, 
+      trigger: 'change' 
+    }
+  ]
+}
 
 // 监听日期范围变化
 watch(dateRange, (newVal) => {
@@ -305,15 +390,26 @@ watch(dateRange, (newVal) => {
   }
 })
 
-// 执行搜索
+// 处理搜索
 const handleSearch = async () => {
+  // 验证日期
+  if (dateRange.value && dateRange.value.length === 2) {
+    searchForm.startDate = dateRange.value[0]
+    searchForm.endDate = dateRange.value[1]
+  } else {
+    searchForm.startDate = ''
+    searchForm.endDate = ''
+  }
+  
+  // 重置结果
+  searchResults.value = []
+  currentPage.value = 1
+  
   loading.value = true
   
   try {
     // 构建查询参数
     const params = {
-      page: currentPage.value,
-      size: pageSize.value,
       code: searchForm.code,
       name: searchForm.name,
       type: searchForm.type,
@@ -321,26 +417,56 @@ const handleSearch = async () => {
       startDate: searchForm.startDate,
       endDate: searchForm.endDate,
       keyword: searchForm.keyword,
-      content: searchForm.content
+      content: searchForm.content,
+      tags: searchForm.tags.join(','),
+      page: currentPage.value,
+      pageSize: pageSize.value
     }
     
-    // 实际项目中应该调用API
-    // const { data } = await searchArchives(params)
-    // searchResults.value = data.list
-    // total.value = data.total
+    // 清除空参数
+    Object.keys(params).forEach(key => {
+      if (params[key] === '' || params[key] === null || params[key] === undefined || 
+          (Array.isArray(params[key]) && params[key].length === 0)) {
+        delete params[key]
+      }
+    })
     
-    // 模拟数据
-    setTimeout(() => {
-      const mockData = generateMockData()
-      searchResults.value = mockData
-      total.value = Math.floor(Math.random() * 500) + 20 // 随机生成总数
+    // 调用API - 使用基本列表API替代搜索API
+    const result = await getArchiveList(params)
+    
+    if (result.code === 200) {
+      // 处理不同格式的返回结果
+      if (Array.isArray(result.data)) {
+        searchResults.value = result.data
+        total.value = result.total || result.data.length || 0
+      } else if (result.data && result.data.records && Array.isArray(result.data.records)) {
+        searchResults.value = result.data.records
+        total.value = result.data.total || 0
+      } else if (result.data && result.data.content && Array.isArray(result.data.content)) {
+        searchResults.value = result.data.content
+        total.value = result.data.totalElements || 0
+      } else {
+        searchResults.value = []
+        total.value = 0
+        ElMessage.warning('返回数据格式无法解析')
+      }
       
       searched.value = true
-      loading.value = false
-    }, 800)
+      
+      if (searchResults.value.length === 0) {
+        ElMessage.info('未找到符合条件的档案')
+      }
+    } else {
+      ElMessage.error(result.message || '搜索失败')
+      searchResults.value = []
+      total.value = 0
+    }
   } catch (error) {
-    console.error('Error performing search:', error)
-    ElMessage.error('搜索失败，请稍后重试')
+    console.error('搜索出错:', error)
+    ElMessage.error('搜索失败，请稍后重试: ' + error.message)
+    searchResults.value = []
+    total.value = 0
+  } finally {
     loading.value = false
   }
 }
@@ -362,36 +488,6 @@ const resetSearch = () => {
   currentPage.value = 1
   searchResults.value = []
   searched.value = false
-}
-
-// 生成模拟数据
-const generateMockData = () => {
-  const result = []
-  const count = pageSize.value
-  
-  for (let i = 0; i < count; i++) {
-    const typeIndex = Math.floor(Math.random() * typeOptions.length)
-    const statusIndex = Math.floor(Math.random() * statusOptions.length)
-    const fileTypes = ['pdf', 'word', 'excel', 'image']
-    const fileTypeIndex = Math.floor(Math.random() * fileTypes.length)
-    
-    result.push({
-      id: i + 1,
-      code: `AR${new Date().getFullYear()}${String(i + 1).padStart(4, '0')}`,
-      name: ['财务报表', '人事档案', '会议纪要', '合同文本', '技术文档'][Math.floor(Math.random() * 5)] + ` ${i + 1}`,
-      type: typeOptions[typeIndex].value,
-      status: statusOptions[statusIndex].value,
-      createTime: new Date(new Date().getTime() - Math.floor(Math.random() * 1000 * 3600 * 24 * 30)).toISOString(),
-      updateTime: new Date().toISOString(),
-      fileSize: Math.floor(Math.random() * 10000000),
-      fileType: fileTypes[fileTypeIndex],
-      borrowCount: Math.floor(Math.random() * 20),
-      keywords: ['财务', '季度报表', '2023', '审计', '合同'].slice(0, Math.floor(Math.random() * 4) + 1),
-      description: '这是一份关于' + ['财务', '人事', '行政', '技术'][Math.floor(Math.random() * 4)] + '方面的档案文件，包含了详细的信息和数据。'
-    })
-  }
-  
-  return result
 }
 
 // 处理排序或筛选变化
@@ -421,29 +517,101 @@ const handleBorrow = (row) => {
 }
 
 // 下载档案
-const handleDownload = (row) => {
-  ElMessage.success(`《${row.name}》下载中...`)
+const handleDownload = async (row) => {
+  try {
+    ElMessage({
+      message: `正在准备下载档案：${row.name}`,
+      type: 'info',
+      duration: 2000
+    })
+    
+    const result = await downloadArchive(row.id)
+    
+    // 处理blob响应并下载
+    const contentDisposition = result.headers['content-disposition']
+    let filename = `${row.code}_${row.name}.pdf`
+    
+    if (contentDisposition) {
+      const filenameMatch = contentDisposition.match(/filename="?(.+)"?/)
+      if (filenameMatch && filenameMatch[1]) {
+        filename = filenameMatch[1]
+      }
+    }
+    
+    const blob = new Blob([result.data], { type: result.headers['content-type'] })
+    const url = window.URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = filename
+    link.click()
+    window.URL.revokeObjectURL(url)
+    
+    ElMessage.success(`档案《${row.name}》下载完成`)
+  } catch (error) {
+    console.error('下载错误:', error)
+    ElMessage.error(`下载失败: ${error.message}`)
+  }
 }
 
 // 导出结果
-const handleExport = (command) => {
+const handleExport = async (command) => {
   if (searchResults.value.length === 0) {
     ElMessage.warning('没有可导出的数据')
     return
   }
   
-  const exportTypeMap = {
-    'excel': 'Excel',
-    'pdf': 'PDF',
-    'csv': 'CSV'
+  try {
+    loading.value = true
+    
+    // 构建查询参数，与搜索相同
+    const params = {
+      code: searchForm.code,
+      name: searchForm.name,
+      type: searchForm.type,
+      status: searchForm.status,
+      startDate: searchForm.startDate,
+      endDate: searchForm.endDate,
+      keyword: searchForm.keyword,
+      content: searchForm.content,
+      format: command // 指定导出格式 excel, pdf, csv
+    }
+    
+    // 清除空参数
+    Object.keys(params).forEach(key => {
+      if (params[key] === '' || params[key] === null || params[key] === undefined || 
+          (Array.isArray(params[key]) && params[key].length === 0)) {
+        delete params[key]
+      }
+    })
+    
+    ElMessage.info(`正在导出${command.toUpperCase()}文件，请稍候...`)
+    
+    const result = await exportArchives(params)
+    
+    // 处理blob响应并下载
+    const contentType = command === 'excel' ? 'application/vnd.ms-excel' : 
+                        command === 'pdf' ? 'application/pdf' : 
+                        'text/csv'
+    
+    const extension = command === 'excel' ? 'xlsx' : 
+                     command === 'pdf' ? 'pdf' : 
+                     'csv'
+                     
+    const blob = new Blob([result], { type: contentType })
+    const url = window.URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `档案搜索结果_${new Date().toISOString().split('T')[0]}.${extension}`
+    link.click()
+    window.URL.revokeObjectURL(url)
+    
+    ElMessage.success(`导出${command.toUpperCase()}文件成功`)
+  } catch (error) {
+    console.error('导出错误:', error)
+    ElMessage.error(`导出失败: ${error.message}`)
+  } finally {
+    loading.value = false
   }
-  
-  ElMessage.success(`正在导出${exportTypeMap[command]}文件，请稍候...`)
-  
-  // 模拟导出完成
-  setTimeout(() => {
-    ElMessage.success(`导出${exportTypeMap[command]}文件成功`)
-  }, 1500)
 }
 
 // 格式化类型
@@ -451,8 +619,8 @@ const formatType = (type) => {
   const typeMap = {
     'FINANCIAL': '财务类',
     'PERSONNEL': '人事类',
-    'ADMINISTRATIVE': '行政类',
-    'TECHNICAL': '技术类',
+    'PROJECT': '项目类',
+    'CONTRACT': '合同类',
     'OTHER': '其他'
   }
   return typeMap[type] || type
@@ -509,6 +677,12 @@ const formatFileType = (type) => {
   }
   return typeMap[type] || type
 }
+
+// 组件初始化
+onMounted(() => {
+  // 加载标签选项
+  fetchTags()
+})
 </script>
 
 <style scoped>

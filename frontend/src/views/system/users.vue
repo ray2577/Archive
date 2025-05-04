@@ -317,7 +317,7 @@
           <div class="el-upload__tip">
             请上传Excel文件(xlsx/xls), 文件大小不超过10MB
             <div class="download-template">
-              <el-button type="text" @click="downloadTemplate">
+              <el-button type="link" @click="downloadTemplate">
                 <el-icon><Download /></el-icon> 下载模板
               </el-button>
             </div>

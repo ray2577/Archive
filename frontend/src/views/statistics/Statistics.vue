@@ -120,7 +120,7 @@
           <template #header>
             <div class="card-header">
               <span>借阅次数排行</span>
-              <el-button type="text" @click="exportRankingData">导出</el-button>
+              <el-button type="link" @click="exportRankingData">导出</el-button>
             </div>
           </template>
           <div class="ranking-list">

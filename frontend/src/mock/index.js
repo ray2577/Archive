@@ -146,7 +146,17 @@
 
 // // 初始化模拟数据
 // //mock.setup()
-// mock.restore();
+const mock = {
+  restore() {
+    console.log('已禁用所有模拟数据，使用真实API')
+    // 清除任何可能存在的模拟数据处理器
+    if (window.handleMockResponse) {
+      window.handleMockResponse = null
+    }
+  }
+}
 
+// 确保调用restore禁用所有模拟数据
+mock.restore();
 
-// export default mock 
+export default mock 

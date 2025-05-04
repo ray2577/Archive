@@ -96,6 +96,17 @@
               </el-form-item>
             </el-col>
             <el-col :xs="24" :sm="12">
+              <el-form-item label="档案类别" prop="category">
+                <el-input 
+                  v-model="archiveForm.category" 
+                  placeholder="请输入档案类别" 
+                />
+              </el-form-item>
+            </el-col>
+          </el-row>
+          
+          <el-row :gutter="20">
+            <el-col :xs="24" :sm="12">
               <el-form-item label="存放位置" prop="location">
                 <el-cascader
                   v-model="archiveForm.location"
@@ -105,9 +116,6 @@
                 />
               </el-form-item>
             </el-col>
-          </el-row>
-          
-          <el-row :gutter="20">
             <el-col :xs="24" :sm="12">
               <el-form-item label="负责人" prop="responsible">
                 <el-input 
@@ -116,6 +124,9 @@
                 />
               </el-form-item>
             </el-col>
+          </el-row>
+          
+          <el-row :gutter="20">
             <el-col :xs="24" :sm="12">
               <el-form-item label="状态" prop="status" v-if="isEdit">
                 <el-select 
@@ -242,6 +253,14 @@ import {
   RefreshLeft, Check, Plus, 
   Upload, Document 
 } from '@element-plus/icons-vue'
+import { 
+  getArchiveDetail, 
+  createArchive, 
+  updateArchive,
+  getArchivePreviewUrl,
+  getArchiveDownloadUrl,
+  borrowArchive as requestBorrowArchive
+} from '@/api/archive'
 
 const route = useRoute()
 const router = useRouter()
@@ -263,6 +282,7 @@ const archiveForm = reactive({
   fileNumber: '',
   title: '',
   type: '',
+  category: '',
   location: [],
   responsible: '',
   status: 'AVAILABLE',
@@ -286,6 +306,9 @@ const rules = {
   ],
   type: [
     { required: true, message: '请选择档案类型', trigger: 'change' }
+  ],
+  category: [
+    { required: true, message: '请输入档案类别', trigger: 'blur' }
   ],
   location: [
     { required: true, message: '请选择存放位置', trigger: 'change' }
@@ -351,38 +374,20 @@ const loadArchiveDetail = async () => {
   
   loading.value = true
   try {
-    // 模拟API请求
-    setTimeout(() => {
-      // 模拟数据
-      const data = {
-        id: archiveId.value,
-        fileNumber: `AR2023${String(archiveId.value).padStart(4, '0')}`,
-        title: '2023年第三季度财务报表',
-        type: 'FINANCIAL',
-        location: ['A', 'A2'],
-        status: 'AVAILABLE',
-        responsible: '张经理',
-        createTime: '2023-09-30T10:00:00Z',
-        updateTime: '2023-10-15T14:30:00Z',
-        fileSize: 2456789,
-        fileType: 'pdf',
-        fileUrl: null,
-        keywords: ['财务', '季度报表', '2023', '审计'],
-        description: '本文件包含2023年第三季度的财务状况报告，包括损益表、资产负债表和现金流量表。报告已经由财务部审核并经总经理批准。仅限内部使用，请勿外传。'
+    // 调用API服务获取档案详情
+    const res = await getArchiveDetail(archiveId.value)
+    const data = res.data
+    
+    // 更新表单数据
+    Object.keys(archiveForm).forEach(key => {
+      if (data[key] !== undefined) {
+        archiveForm[key] = data[key]
       }
-      
-      // 更新表单数据
-      Object.keys(archiveForm).forEach(key => {
-        if (data[key] !== undefined) {
-          archiveForm[key] = data[key]
-        }
-      })
-      
-      loading.value = false
-    }, 1000)
+    })
   } catch (error) {
     console.error('Error loading archive detail:', error)
     ElMessage.error('加载档案详情失败，请稍后重试')
+  } finally {
     loading.value = false
   }
 }
@@ -399,6 +404,7 @@ const initForm = () => {
   
   archiveForm.fileNumber = `AR${year}${month}${day}`
   archiveForm.status = 'AVAILABLE'
+  archiveForm.category = '一般文档'
 }
 
 // 返回上一页
@@ -461,49 +467,33 @@ const submitForm = async () => {
       // 打印提交数据用于调试
       console.log('提交的表单数据:', Object.fromEntries(formData.entries()))
       
-      // 暂时使用模拟 API 请求，直到后端 API 修复
-      setTimeout(() => {
-        console.log('模拟提交成功')
-        ElMessage.success(isEdit.value ? '档案更新成功' : '档案创建成功')
-        router.push('/archive/list')
+      // 检查文件上传
+      if (!archiveForm.file && !isEdit.value) {
+        ElMessage.warning('请上传档案文件')
         submitting.value = false
-      }, 1500)
-      
-      /* 
-      // 实际的 API 请求 (暂时注释掉)
-      const url = isEdit.value 
-        ? `/api/archives/${archiveId.value}` 
-        : '/api/archives'
-      
-      const method = isEdit.value ? 'PUT' : 'POST'
-      
-      const response = await fetch(url, {
-        method,
-        body: formData,
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      })
-      
-      if (!response.ok) {
-        const errorData = await response.text()
-        console.error('服务器响应错误:', response.status, errorData)
-        throw new Error(`服务器错误 (${response.status}): ${errorData || '未知错误'}`)
+        return
       }
       
-      const result = await response.json()
+      // 使用API服务调用后端接口
+      let result
+      if (isEdit.value) {
+        result = await updateArchive(archiveId.value, formData)
+      } else {
+        result = await createArchive(formData)
+      }
+      
       console.log('服务器响应成功:', result)
       
       ElMessage.success(isEdit.value ? '档案更新成功' : '档案创建成功')
       router.push('/archive/list')
-      */
-      
     } catch (error) {
       console.error('提交表单错误:', error)
+      console.error('错误详情:', error.response?.data || error.message)
       ElMessage.error({
         message: `${isEdit.value ? '更新' : '创建'}档案失败: ${error.message}`,
         duration: 5000
       })
+    } finally {
       submitting.value = false
     }
   })
@@ -565,17 +555,48 @@ const handlePreview = () => {
 
 // 获取预览URL
 const getPreviewUrl = (url) => {
+  // 如果没有文件URL但有ID，使用API服务生成预览URL
+  if (!url && isEdit.value) {
+    return getArchivePreviewUrl(archiveId.value);
+  }
+  
   // 如果是PDF，可以直接预览
-  if (archiveForm.fileType === 'pdf') {
+  if (archiveForm.fileType === 'pdf' && url) {
     // 通常会使用Google Docs或其他PDF预览服务
     return `https://docs.google.com/viewer?url=${encodeURIComponent(url)}&embedded=true`
   }
   // 如果是图片，直接返回URL
-  if (archiveForm.fileType === 'image') {
+  if (archiveForm.fileType === 'image' && url) {
     return url
   }
   // 其他类型文件可能需要特殊处理
   return url
+}
+
+// 下载档案
+const downloadArchive = async (archive) => {
+  if (isEdit.value) {
+    // 使用下载URL进行下载
+    const downloadUrl = getArchiveDownloadUrl(archiveId.value);
+    window.open(downloadUrl, '_blank');
+  }
+}
+
+// 申请借阅
+const borrowArchive = async (archive) => {
+  if (isEdit.value) {
+    try {
+      await requestBorrowArchive(archiveId.value, {
+        userId: localStorage.getItem('userId'),
+        reason: '档案查阅',
+        borrowDate: new Date().toISOString()
+      });
+      ElMessage.success('借阅申请已提交');
+    } catch (error) {
+      console.error('借阅申请失败:', error);
+      ElMessage.error('借阅申请失败, 请稍后重试');
+    }
+  }
 }
 
 // 格式化状态
@@ -624,102 +645,203 @@ onMounted(() => {
 
 <style scoped>
 .archive-edit-container {
-  padding: 20px;
+  padding: 24px;
+  background-color: #f5f7fa;
+  min-height: calc(100vh - 64px);
 }
 
 .page-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
+  background-color: white;
+  padding: 16px 24px;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.05);
 }
 
 .header-left {
   display: flex;
   align-items: center;
+  gap: 16px;
 }
 
 .header-left h2 {
-  margin: 0 0 0 16px;
-  font-size: 20px;
-  font-weight: 500;
+  margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+  color: #303133;
+}
+
+.header-actions {
+  display: flex;
+  gap: 12px;
 }
 
 .form-container {
-  margin-bottom: 20px;
+  margin-top: 20px;
 }
 
 .form-card {
-  margin-bottom: 20px;
+  margin-bottom: 24px;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+  border: none;
+}
+
+.form-card:hover {
+  box-shadow: 0 4px 16px 0 rgba(0, 0, 0, 0.1);
 }
 
 .card-header {
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  font-weight: bold;
+  align-items: center;
+  padding: 12px 16px;
+  background-color: #fafafa;
+  border-bottom: 1px solid #f0f0f0;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.archive-form {
+  padding: 12px;
 }
 
 .keyword-tag {
   margin-right: 8px;
   margin-bottom: 8px;
+  border-radius: 4px;
 }
 
 .keyword-input {
   width: 120px;
-  vertical-align: bottom;
   margin-right: 8px;
+  vertical-align: top;
 }
 
 .keyword-button {
-  vertical-align: bottom;
+  margin-top: 8px;
 }
 
+/* Upload area styling */
 .archive-upload {
   width: 100%;
 }
 
-.file-preview {
-  margin-top: 20px;
+:deep(.el-upload-dragger) {
+  width: 100%;
+  height: 200px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-color: #fafafa;
+  border: 1px dashed #d9d9d9;
+  border-radius: 8px;
+  transition: all 0.3s;
 }
 
-.current-file {
-  display: flex;
-  align-items: center;
-  padding: 10px;
+:deep(.el-upload-dragger:hover) {
+  border-color: #409EFF;
+  background-color: #f0f7ff;
+}
+
+:deep(.el-icon--upload) {
+  font-size: 48px;
+  color: #909399;
+  margin-bottom: 16px;
+}
+
+/* Enhanced form controls */
+:deep(.el-form-item__label) {
+  font-weight: 500;
+  color: #303133;
+}
+
+:deep(.el-input__wrapper),
+:deep(.el-textarea__wrapper),
+:deep(.el-select__wrapper) {
+  box-shadow: 0 0 0 1px #dcdfe6 inset;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+:deep(.el-input__wrapper:hover),
+:deep(.el-textarea__wrapper:hover),
+:deep(.el-select__wrapper:hover) {
+  box-shadow: 0 0 0 1px #a0cfff inset;
+}
+
+:deep(.el-input__wrapper.is-focus),
+:deep(.el-textarea__wrapper.is-focus),
+:deep(.el-select__wrapper.is-focus) {
+  box-shadow: 0 0 0 1px #409eff inset;
+}
+
+:deep(.el-input__inner),
+:deep(.el-textarea__inner) {
+  font-size: 14px;
+}
+
+:deep(.el-upload-list__item) {
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+:deep(.el-upload-list__item:hover) {
+  background-color: #f0f7ff;
+}
+
+/* File preview styling */
+.file-preview {
   border: 1px solid #e4e7ed;
   border-radius: 4px;
+  padding: 16px;
+  margin-top: 16px;
+  background-color: #fafafa;
 }
 
-.file-info {
-  flex: 1;
-  margin-left: 16px;
+.file-preview-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
 }
 
-.file-name {
-  font-size: 16px;
-}
-
-.file-meta {
-  font-size: 12px;
-  color: #909399;
-  margin-top: 4px;
-}
-
-.preview-container {
-  height: 80vh;
-}
-
-.preview-iframe {
-  width: 100%;
-  height: 100%;
-  border: none;
-}
-
-.preview-placeholder {
+.file-preview-content {
+  min-height: 200px;
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100%;
+  padding: 20px;
+  background-color: white;
+  border-radius: 4px;
+}
+
+/* Responsive adjustments */
+@media screen and (max-width: 768px) {
+  .archive-edit-container {
+    padding: 16px;
+  }
+  
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 16px;
+  }
+  
+  .header-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+  
+  .archive-form {
+    padding: 8px;
+  }
 }
 </style> 

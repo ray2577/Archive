@@ -85,7 +85,7 @@
       <template #header>
         <div class="card-header">
           <span>借阅历史</span>
-          <el-button type="text" icon="More" @click="showAllHistory">查看全部</el-button>
+          <el-button type="link" icon="More" @click="showAllHistory">查看全部</el-button>
         </div>
       </template>
       <el-table :data="borrowHistory" stripe style="width: 100%">
@@ -274,14 +274,20 @@ onMounted(() => {
 
 <style scoped>
 .archive-detail-container {
-  padding: 20px;
+  padding: 24px;
+  background-color: #f5f7fa;
+  min-height: calc(100vh - 64px);
 }
 
 .page-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
+  background-color: white;
+  padding: 16px 24px;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.05);
 }
 
 .title-section {
@@ -292,64 +298,172 @@ onMounted(() => {
 
 .title-section h2 {
   margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+  color: #303133;
 }
 
 .header-actions {
   display: flex;
-  gap: 10px;
+  gap: 12px;
 }
 
-.info-card,
-.content-card,
+.info-card, 
+.content-card, 
 .history-card {
-  margin-bottom: 20px;
+  margin-bottom: 24px;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+  border: none;
+}
+
+.info-card:hover, 
+.content-card:hover, 
+.history-card:hover {
+  box-shadow: 0 4px 16px 0 rgba(0, 0, 0, 0.1);
 }
 
 .card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding: 12px 16px;
+  background-color: #fafafa;
+  border-bottom: 1px solid #f0f0f0;
+  font-size: 16px;
+  font-weight: 500;
 }
 
+/* Content container styling */
 .content-container {
   min-height: 200px;
   padding: 20px;
 }
 
-.pdf-placeholder,
-.image-error {
+/* PDF viewer styling */
+.pdf-viewer {
   display: flex;
-  flex-direction: column;
   justify-content: center;
   align-items: center;
-  height: 300px;
-  background-color: #f5f7fa;
+  width: 100%;
+  height: 400px;
+  background-color: #f9f9f9;
   border-radius: 4px;
-  color: #909399;
+  border: 1px dashed #d9d9d9;
 }
 
-.pdf-icon,
-.image-error .el-icon {
-  font-size: 48px;
-  margin-bottom: 16px;
+.pdf-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+
+.pdf-icon {
+  font-size: 64px;
+  color: #909399;
 }
 
 .view-button {
   margin-top: 16px;
 }
 
-.preview-image {
-  max-height: 400px;
+/* Image viewer styling */
+.image-viewer {
   width: 100%;
+  height: 400px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #f9f9f9;
+  border-radius: 4px;
+}
+
+.preview-image {
+  max-height: 380px;
+  max-width: 100%;
   object-fit: contain;
 }
 
+.image-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  font-size: 16px;
+  color: #909399;
+}
+
+.image-error .el-icon {
+  font-size: 64px;
+}
+
+/* Text content styling */
 .text-content {
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 4px;
+  border: 1px solid #ebeef5;
+  font-size: 16px;
   line-height: 1.6;
+  color: #303133;
 }
 
 .empty-content {
+  text-align: center;
   color: #909399;
   font-style: italic;
+}
+
+/* Table styling enhancements */
+:deep(.el-table) {
+  margin-top: 10px;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+:deep(.el-table__row:hover) {
+  background-color: #ecf5ff !important;
+}
+
+:deep(.el-descriptions__body) {
+  background-color: #fff;
+}
+
+:deep(.el-descriptions__label) {
+  font-weight: 500;
+}
+
+:deep(.el-tag) {
+  border-radius: 4px;
+  padding: 0 8px;
+  height: 24px;
+  line-height: 22px;
+}
+
+/* Responsive adjustments */
+@media screen and (max-width: 768px) {
+  .archive-detail-container {
+    padding: 16px;
+  }
+  
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  
+  .header-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+  
+  :deep(.el-descriptions) {
+    padding: 8px;
+  }
 }
 </style> 

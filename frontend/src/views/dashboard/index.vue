@@ -24,7 +24,7 @@
           <template #header>
             <div class="card-header">
               <span>最近活动</span>
-              <el-button type="text">查看全部</el-button>
+              <el-button type="link">查看全部</el-button>
             </div>
           </template>
           <el-timeline>

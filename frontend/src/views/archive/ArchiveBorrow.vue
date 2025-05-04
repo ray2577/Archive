@@ -81,9 +81,11 @@
         </div>
         <div class="actions">
           <el-tooltip content="刷新">
-            <el-button @click="fetchData">
-              <el-icon><Refresh /></el-icon>
-            </el-button>
+            <div>
+              <el-button @click="fetchData">
+                <el-icon><Refresh /></el-icon>
+              </el-button>
+            </div>
           </el-tooltip>
         </div>
       </div>
@@ -129,29 +131,39 @@
           <template #default="scope">
             <el-button-group>
               <el-tooltip content="查看档案">
-                <el-button type="primary" link @click="viewArchiveDetail(scope.row)">
-                  <el-icon><View /></el-icon>
-                </el-button>
+                <div>
+                  <el-button type="primary" link @click="viewArchiveDetail(scope.row)">
+                    <el-icon><View /></el-icon>
+                  </el-button>
+                </div>
               </el-tooltip>
               <el-tooltip content="编辑">
-                <el-button type="primary" link @click="handleEdit(scope.row)" :disabled="scope.row.status !== 'BORROWED'">
-                  <el-icon><Edit /></el-icon>
-                </el-button>
+                <div>
+                  <el-button type="primary" link @click="handleEdit(scope.row)" :disabled="scope.row.status !== 'BORROWED'">
+                    <el-icon><Edit /></el-icon>
+                  </el-button>
+                </div>
               </el-tooltip>
               <el-tooltip content="归还">
-                <el-button type="success" link @click="handleReturn(scope.row)" :disabled="scope.row.status !== 'BORROWED' && scope.row.status !== 'OVERDUE'">
-                  <el-icon><Select /></el-icon>
-                </el-button>
+                <div>
+                  <el-button type="success" link @click="handleReturn(scope.row)" :disabled="scope.row.status !== 'BORROWED' && scope.row.status !== 'OVERDUE'">
+                    <el-icon><Select /></el-icon>
+                  </el-button>
+                </div>
               </el-tooltip>
               <el-tooltip content="延期">
-                <el-button type="warning" link @click="handleExtend(scope.row)" :disabled="scope.row.status !== 'BORROWED'">
-                  <el-icon><Timer /></el-icon>
-                </el-button>
+                <div>
+                  <el-button type="warning" link @click="handleExtend(scope.row)" :disabled="scope.row.status !== 'BORROWED'">
+                    <el-icon><Timer /></el-icon>
+                  </el-button>
+                </div>
               </el-tooltip>
               <el-tooltip content="删除">
-                <el-button type="danger" link @click="handleDelete(scope.row)">
-                  <el-icon><Delete /></el-icon>
-                </el-button>
+                <div>
+                  <el-button type="danger" link @click="handleDelete(scope.row)">
+                    <el-icon><Delete /></el-icon>
+                  </el-button>
+                </div>
               </el-tooltip>
             </el-button-group>
           </template>
@@ -385,14 +397,20 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
   Plus, Download, Search, RefreshRight, Refresh,
   View, Edit, Select, Timer, Delete
 } from '@element-plus/icons-vue'
+import { borrowArchive, getArchiveDetail, getArchiveApprovalProcess, submitArchiveApproval, getArchiveList } from '@/api/archive'
 
 const router = useRouter()
+const route = useRoute()
+
+// 从路由参数中获取档案ID
+const archiveId = ref(route.query.archiveId)
+const archiveInfo = ref({})
 
 // 状态变量
 const loading = ref(false)
@@ -405,6 +423,10 @@ const activeTab = ref('all')
 const selectedRows = ref([])
 const archiveSearching = ref(false)
 const archiveOptions = ref([])
+
+// 表单引用
+const formRef = ref(null)
+const approvalProcess = ref([])
 
 // 弹窗控制
 const borrowDialogVisible = ref(false)
@@ -589,15 +611,42 @@ const searchArchives = async (query) => {
   
   archiveSearching.value = true
   
-  // 模拟搜索
-  setTimeout(() => {
-    archiveOptions.value = Array.from({ length: 10 }, (_, i) => ({
-      id: i + 1,
-      fileNumber: `AR${new Date().getFullYear()}${String(i + 1).padStart(4, '0')}`,
-      title: query + ['财务报表', '人事档案', '会议纪要', '合同文本', '技术文档'][Math.floor(Math.random() * 5)] + ` ${i + 1}`
-    }))
+  try {
+    // 使用基本的档案列表API并添加搜索参数
+    const result = await getArchiveList({
+      keyword: query,
+      page: 1,
+      pageSize: 10
+    })
+    
+    if (result.code === 200) {
+      // 处理不同格式的返回结果
+      let archives = []
+      if (Array.isArray(result.data)) {
+        archives = result.data
+      } else if (result.data && Array.isArray(result.data.records)) {
+        archives = result.data.records
+      } else if (result.data && Array.isArray(result.data.content)) {
+        archives = result.data.content
+      }
+      
+      // 格式化结果
+      archiveOptions.value = archives.map(item => ({
+        id: item.id,
+        fileNumber: item.code || item.fileNumber,
+        title: item.name || item.title
+      }))
+    } else {
+      ElMessage.warning('搜索档案失败：' + (result.message || '未知错误'))
+      archiveOptions.value = []
+    }
+  } catch (error) {
+    console.error('搜索档案错误:', error)
+    ElMessage.error('搜索档案出错，请稍后重试')
+    archiveOptions.value = []
+  } finally {
     archiveSearching.value = false
-  }, 500)
+  }
 }
 
 // 档案选择变化
@@ -797,9 +846,94 @@ const formatTableDate = (row, column, cellValue) => {
   return formatDate(cellValue)
 }
 
-// 组件挂载
+// 获取档案详情
+const fetchArchiveDetail = async () => {
+  try {
+    if (!archiveId.value) return
+    
+    loading.value = true
+    const result = await getArchiveDetail(archiveId.value)
+    
+    if (result.code === 200) {
+      archiveInfo.value = result.data
+    } else {
+      ElMessage.error(result.message || '获取档案详情失败')
+    }
+  } catch (error) {
+    console.error('获取档案详情错误:', error)
+    ElMessage.error(`获取档案详情失败: ${error.message}`)
+  } finally {
+    loading.value = false
+  }
+}
+
+// 获取审批流程
+const fetchApprovalProcess = async () => {
+  if (!archiveId.value) return
+  
+  try {
+    const result = await getArchiveApprovalProcess(archiveId.value)
+    
+    if (result.code === 200) {
+      // 处理审批流程数据
+      approvalProcess.value = result.data || []
+    }
+  } catch (error) {
+    console.error('获取审批流程错误:', error)
+  }
+}
+
+// 提交借阅申请
+const submitBorrowRequest = async () => {
+  // 表单验证
+  if (!formRef.value) return
+  
+  try {
+    await formRef.value.validate()
+  } catch (e) {
+    console.error('表单验证失败:', e)
+    return
+  }
+  
+  loading.value = true
+  
+  try {
+    // 如果是从档案详情页进入，需要设置档案ID
+    if (archiveId.value) {
+      borrowForm.archiveId = archiveId.value
+    }
+    
+    const result = await borrowArchive(borrowForm.archiveId, {
+      purpose: borrowForm.purpose,
+      expectedReturnDate: borrowForm.expectedReturnDate,
+      borrowerName: borrowForm.borrowerName,
+      borrowerDept: borrowForm.borrowerDept,
+      borrowerPhone: borrowForm.borrowerPhone,
+      borrowerEmail: borrowForm.borrowerEmail,
+      remarks: borrowForm.remarks,
+    })
+    
+    if (result.code === 200) {
+      ElMessage.success('借阅申请提交成功，请等待审批')
+      router.push(`/archive/borrow/success?id=${result.data.id || borrowForm.archiveId}`)
+    } else {
+      ElMessage.error(result.message || '借阅申请提交失败')
+    }
+  } catch (error) {
+    console.error('提交借阅申请错误:', error)
+    ElMessage.error(`借阅申请提交失败: ${error.message}`)
+  } finally {
+    loading.value = false
+  }
+}
+
+// 组件初始化
 onMounted(() => {
-  fetchData()
+  // 如果有档案ID，获取档案详情
+  if (archiveId.value) {
+    fetchArchiveDetail()
+    fetchApprovalProcess()
+  }
 })
 </script>
 

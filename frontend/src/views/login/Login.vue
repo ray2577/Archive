@@ -35,7 +35,7 @@
         
         <div class="login-options">
           <el-checkbox v-model="rememberMe">记住我</el-checkbox>
-          <el-button type="text" class="forgot-password">忘记密码？</el-button>
+          <el-button type="link" class="forgot-password">忘记密码？</el-button>
         </div>
         
         <el-form-item class="login-submit">

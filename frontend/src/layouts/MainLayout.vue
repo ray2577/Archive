@@ -1,102 +1,121 @@
 <template>
   <div class="app-container">
     <!-- 侧边栏 -->
-    <el-menu
-      :default-active="activeIndex"
-      class="sidebar"
-      :collapse="isCollapse"
-      background-color="#001529"
-      text-color="#fff"
-      active-text-color="#ffd04b"
-      router
-    >
+    <div class="sidebar-container" :class="{ 'is-collapsed': isCollapse }">
       <div class="logo-container">
         <img src="@/assets/logo.svg" class="logo" alt="Logo" v-if="!isCollapse" />
         <img src="@/assets/logo-small.svg" class="logo-small" alt="Logo" v-else />
       </div>
       
-      <el-menu-item index="/dashboard">
-        <el-icon><Monitor /></el-icon>
-        <template #title>首页</template>
-      </el-menu-item>
-      
-      <el-sub-menu index="/archive">
-        <template #title>
-          <el-icon><Folder /></el-icon>
-          <span>档案管理</span>
-        </template>
-        <el-menu-item index="/archive/list">
-          <el-icon><Document /></el-icon>档案列表
-        </el-menu-item>
-        <el-menu-item index="/archive/search">
-          <el-icon><Search /></el-icon>高级搜索
-        </el-menu-item>
-        <el-menu-item index="/archive/borrow">
-          <el-icon><Files /></el-icon>借阅管理
-        </el-menu-item>
-      </el-sub-menu>
-    
-      <el-sub-menu index="/numberrule">
-        <template #title>
-          <el-icon><Collection /></el-icon>
-          <span>档案规则管理</span>
-        </template>
-         <el-menu-item index="/numberrule/rule">
-          <el-icon><List /></el-icon>规则列表
-         </el-menu-item>
-      </el-sub-menu>
+      <div class="menu-wrapper">
+        <el-menu
+          :default-active="activeIndex"
+          class="sidebar-menu"
+          :collapse="isCollapse"
+          background-color="#001529"
+          text-color="#fff"
+          active-text-color="#ffd04b"
+          router
+          :collapse-transition="false"
+          unique-opened
+        >
+          <el-menu-item index="/dashboard">
+            <el-icon><Monitor /></el-icon>
+            <template #title>首页</template>
+          </el-menu-item>
+          
+          <el-sub-menu index="/archive" popper-class="sidebar-submenu">
+            <template #title>
+              <el-icon><Folder /></el-icon>
+              <span>档案管理</span>
+            </template>
+            <el-menu-item index="/archive/list">
+              <el-icon><Document /></el-icon>档案列表
+            </el-menu-item>
+            <el-menu-item index="/archive/search">
+              <el-icon><Search /></el-icon>高级搜索
+            </el-menu-item>
+            <el-menu-item index="/archive/borrow">
+              <el-icon><Files /></el-icon>借阅管理
+            </el-menu-item>
+          </el-sub-menu>
+        
+          <el-sub-menu index="/numberrule" popper-class="sidebar-submenu">
+            <template #title>
+              <el-icon><Collection /></el-icon>
+              <span>档案规则管理</span>
+            </template>
+             <el-menu-item index="/numberrule/rule">
+              <el-icon><List /></el-icon>规则列表
+             </el-menu-item>
+          </el-sub-menu>
 
-      <el-sub-menu index="/archiveMerge">
-        <template #title>
-          <el-icon><DocumentCopy /></el-icon>
-          <span>档案合并管理</span>
-        </template>
-        <el-menu-item index="/archiveMerge/merge">
-          <el-icon><Histogram /></el-icon>合并列表
-        </el-menu-item>
-      </el-sub-menu>
+          <el-sub-menu index="/archiveMerge" popper-class="sidebar-submenu">
+            <template #title>
+              <el-icon><DocumentCopy /></el-icon>
+              <span>档案合并管理</span>
+            </template>
+            <el-menu-item index="/archiveMerge/merge">
+              <el-icon><Histogram /></el-icon>合并列表
+            </el-menu-item>
+          </el-sub-menu>
 
-      <el-sub-menu index="/template">
-        <template #title>
-          <el-icon><Grid /></el-icon>
-          <span>档案模板管理</span>
-        </template>
-        <el-menu-item index="/template/model">
-          <el-icon><Menu /></el-icon>模板列表
-        </el-menu-item>
-      </el-sub-menu>
+          <el-sub-menu index="/template" popper-class="sidebar-submenu">
+            <template #title>
+              <el-icon><Grid /></el-icon>
+              <span>档案模板管理</span>
+            </template>
+            <el-menu-item index="/template/model">
+              <el-icon><Menu /></el-icon>模板列表
+            </el-menu-item>
+          </el-sub-menu>
 
-      <el-menu-item index="/ai-assistant">
-        <el-icon><ChatDotRound /></el-icon>
-        <template #title>AI助手</template>
-      </el-menu-item>
+          <el-menu-item index="/ai-assistant">
+            <el-icon><ChatDotRound /></el-icon>
+            <template #title>AI助手</template>
+          </el-menu-item>
+          
+          <el-menu-item index="/statistics">
+            <el-icon><DataLine /></el-icon>
+            <template #title>统计分析</template>
+          </el-menu-item>
+          
+          <el-sub-menu index="/system" v-if="userStore.isAdmin" popper-class="sidebar-submenu">
+            <template #title>
+              <el-icon><Setting /></el-icon>
+              <span>系统管理</span>
+            </template>
+            <el-menu-item index="/system/users">
+              <el-icon><UserFilled /></el-icon>用户管理
+            </el-menu-item>
+            <el-menu-item index="/system/roles">
+              <el-icon><Lock /></el-icon>角色权限
+            </el-menu-item>
+            <el-menu-item index="/system/logs">
+              <el-icon><Tickets /></el-icon>系统日志
+            </el-menu-item>
+            <el-menu-item index="/api-diagnostic">
+              <el-icon><Connection /></el-icon>API诊断工具
+            </el-menu-item>
+          </el-sub-menu>
+        </el-menu>
+      </div>
       
-      <el-menu-item index="/statistics">
-        <el-icon><DataLine /></el-icon>
-        <template #title>统计分析</template>
-      </el-menu-item>
-      
-      <el-sub-menu index="/system" v-if="userStore.isAdmin">
-        <template #title>
-          <el-icon><Setting /></el-icon>
-          <span>系统管理</span>
-        </template>
-        <el-menu-item index="/system/users">
-          <el-icon><UserFilled /></el-icon>用户管理
-        </el-menu-item>
-        <el-menu-item index="/system/roles">
-          <el-icon><Lock /></el-icon>角色权限
-        </el-menu-item>
-        <el-menu-item index="/system/logs">
-          <el-icon><Tickets /></el-icon>系统日志
-        </el-menu-item>
-      </el-sub-menu>
-      
-      <el-menu-item index="/profile" class="profile-link">
-        <el-icon><User /></el-icon>
-        <template #title>个人中心</template>
-      </el-menu-item>
-    </el-menu>
+      <div class="profile-menu">
+        <el-menu
+          :collapse="isCollapse"
+          background-color="#001529"
+          text-color="#fff"
+          active-text-color="#ffd04b"
+          router
+        >
+          <el-menu-item index="/profile">
+            <el-icon><User /></el-icon>
+            <template #title>个人中心</template>
+          </el-menu-item>
+        </el-menu>
+      </div>
+    </div>
     
     <!-- 主内容区 -->
     <div class="main-container">
@@ -168,7 +187,7 @@ import { ElMessageBox } from 'element-plus'
 import {
   Monitor, Folder, ChatDotRound, DataLine, User, Setting,
   Fold, Expand, ArrowDown, SwitchButton,
-  Document, Search, Files, Collection, List, DocumentCopy, Histogram, Grid, Menu, UserFilled, Lock, Tickets
+  Document, Search, Files, Collection, List, DocumentCopy, Histogram, Grid, Menu, UserFilled, Lock, Tickets, Connection
 } from '@element-plus/icons-vue'
 
 // 用户信息
@@ -276,16 +295,19 @@ onMounted(() => {
   width: 100%;
 }
 
-.sidebar {
+.sidebar-container {
+  display: flex;
+  flex-direction: column;
   height: 100%;
   transition: width 0.3s;
   position: relative;
   z-index: 10;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   width: 220px;
+  background-color: #001529;
 }
 
-.sidebar.el-menu--collapse {
+.sidebar-container.is-collapsed {
   width: 64px;
 }
 
@@ -297,6 +319,7 @@ onMounted(() => {
   align-items: center;
   overflow: hidden;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  flex-shrink: 0;
 }
 
 .logo {
@@ -307,6 +330,36 @@ onMounted(() => {
 .logo-small {
   height: 32px;
   width: 32px;
+}
+
+.menu-wrapper {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.sidebar-menu {
+  border-right: none;
+  height: 100%;
+}
+
+.profile-menu {
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  flex-shrink: 0;
+}
+
+/* 自定义滚动条 */
+.menu-wrapper::-webkit-scrollbar {
+  width: 4px;
+}
+
+.menu-wrapper::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+}
+
+.menu-wrapper::-webkit-scrollbar-track {
+  background: transparent;
 }
 
 /* 菜单样式优化 */
@@ -339,18 +392,35 @@ onMounted(() => {
   vertical-align: middle;
 }
 
-.profile-link {
-  position: absolute;
-  bottom: 16px;
-  width: calc(100% - 1px);
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
-}
-
 .main-container {
   flex: 1;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+}
+
+/* 控制子菜单弹出样式 */
+:deep(.sidebar-submenu) {
+  background-color: #000c17 !important;
+  border: none !important;
+}
+
+:deep(.sidebar-submenu .el-menu) {
+  background-color: #000c17 !important;
+}
+
+:deep(.sidebar-submenu .el-menu-item) {
+  background-color: #000c17 !important;
+  color: #fff !important;
+}
+
+:deep(.sidebar-submenu .el-menu-item:hover) {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+:deep(.sidebar-submenu .el-menu-item.is-active) {
+  background-color: #1890ff !important;
+  color: #fff !important;
 }
 
 .header {

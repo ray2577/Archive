@@ -201,8 +201,8 @@ interface ApiResponse {
 // 常量配置
 const API_ENDPOINTS = {
   QUERY: '/api/ai-chat/query',
-  FEEDBACK: '/api/ai-chat/feedback',
-  HISTORY: '/api/ai-chat/history'
+  FEEDBACK: '/api/chat/feedback',
+  HISTORY: '/api/chat/history'
 } as const;
 
 const MAX_RETRIES = 3;
@@ -463,7 +463,7 @@ const borrowArchive = async (archive) => {
 // 加载历史记录
 const loadChatHistory = async () => {
   try {
-    const response = await fetch('/api/ai-chat/history')
+    const response = await fetch(API_ENDPOINTS.HISTORY)
     const data = await response.json()
     
     messages.value = data.map(item => ({
@@ -476,6 +476,7 @@ const loadChatHistory = async () => {
     
     await scrollToBottom()
   } catch (error) {
+    console.error('Error loading chat history:', error)
     ElMessage.error('加载历史记录失败')
   }
 }

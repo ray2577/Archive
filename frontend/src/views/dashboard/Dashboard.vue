@@ -71,7 +71,7 @@
           <template #header>
             <div class="card-header">
               <span>最近活动</span>
-              <el-button type="text" @click="loadRecentActivities">查看更多</el-button>
+              <el-button type="link" @click="loadRecentActivities">查看更多</el-button>
             </div>
           </template>
           <div class="activity-list">
@@ -98,7 +98,7 @@
           <template #header>
             <div class="card-header">
               <span>借阅排行</span>
-              <el-button type="text" @click="navigateTo('/archive/list')">查看全部</el-button>
+              <el-button type="link" @click="navigateTo('/archive/list')">查看全部</el-button>
             </div>
           </template>
           <el-table :data="borrowRanking" style="width: 100%" size="large">
