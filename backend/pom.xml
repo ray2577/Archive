@@ -5,14 +5,17 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.2.3</version>
+        <version>3.2.5</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.ray</groupId>
-    <artifactId>Archive</artifactId>
+    <artifactId>archive</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>Archive</name>
-    <description>Archive</description>
+    <name>archive</name>
+    <description>archive</description>
+
+
+
     <url/>
     <licenses>
         <license/>
@@ -29,6 +32,8 @@
     <properties>
         <java.version>19</java.version>
         <spring-ai.version>1.0.0-M6</spring-ai.version>
+        <swagger.fox.version>3.0.0</swagger.fox.version>
+        <swagger.core.version>1.6.2</swagger.core.version>
     </properties>
     <dependencies>
         <dependency>
@@ -136,33 +141,58 @@
             <artifactId>spring-security-test</artifactId>
             <scope>test</scope>
         </dependency>
-            <!-- iText 7 Core -->
-            <dependency>
-                <groupId>com.itextpdf</groupId>
-                <artifactId>itext7-core</artifactId>
-                <version>7.2.5</version>
-                <type>pom</type>
-            </dependency>
+        <!-- iText 7 Core -->
+        <dependency>
+            <groupId>com.itextpdf</groupId>
+            <artifactId>itext7-core</artifactId>
+            <version>7.2.5</version>
+            <type>pom</type>
+        </dependency>
 
-            <!-- iText 7 Asian Fonts -->
-            <dependency>
-                <groupId>com.itextpdf</groupId>
-                <artifactId>font-asian</artifactId>
-                <version>7.2.5</version>
-            </dependency>
+        <!-- iText 7 Asian Fonts -->
+        <dependency>
+            <groupId>com.itextpdf</groupId>
+            <artifactId>font-asian</artifactId>
+            <version>7.2.5</version>
+        </dependency>
 
-            <!-- Thymeleaf -->
-            <dependency>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-starter-thymeleaf</artifactId>
-            </dependency>
+        <!-- Thymeleaf -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-thymeleaf</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
             <version>RELEASE</version>
             <scope>compile</scope>
         </dependency>
+        <!--  Swagger -->
+        <!-- Swagger UI -->
+        <dependency>
+            <groupId>io.springfox</groupId>
+            <artifactId>springfox-swagger-ui</artifactId>
+            <version>${swagger.fox.version}</version>
+        </dependency>
 
+        <!-- Swagger -->
+        <dependency>
+            <groupId>io.springfox</groupId>
+            <artifactId>springfox-swagger2</artifactId>
+            <version>${swagger.fox.version}</version>
+        </dependency>
+
+        <!-- Swagger 依赖配置 -->
+        <dependency>
+            <groupId>io.swagger</groupId>
+            <artifactId>swagger-annotations</artifactId>
+            <version>${swagger.core.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.hibernate.validator</groupId>
+            <artifactId>hibernate-validator</artifactId>
+            <version>8.0.2.Final</version>
+        </dependency>
     </dependencies>
     <dependencyManagement>
         <dependencies>
@@ -176,21 +206,22 @@
         </dependencies>
     </dependencyManagement>
 
+
     <build>
         <plugins>
 
-<!--            <plugin>-->
-<!--                <groupId>org.springframework.boot</groupId>-->
-<!--                <artifactId>spring-boot-maven-plugin</artifactId>-->
-<!--                <configuration>-->
-<!--                    <excludes>-->
-<!--                        <exclude>-->
-<!--                            <groupId>org.projectlombok</groupId>-->
-<!--                            <artifactId>lombok</artifactId>-->
-<!--                        </exclude>-->
-<!--                    </excludes>-->
-<!--                </configuration>-->
-<!--            </plugin>-->
+            <!--            <plugin>-->
+            <!--                <groupId>org.springframework.boot</groupId>-->
+            <!--                <artifactId>spring-boot-maven-plugin</artifactId>-->
+            <!--                <configuration>-->
+            <!--                    <excludes>-->
+            <!--                        <exclude>-->
+            <!--                            <groupId>org.projectlombok</groupId>-->
+            <!--                            <artifactId>lombok</artifactId>-->
+            <!--                        </exclude>-->
+            <!--                    </excludes>-->
+            <!--                </configuration>-->
+            <!--            </plugin>-->
         </plugins>
     </build>
 

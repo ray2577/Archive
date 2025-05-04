@@ -1,0 +1,75 @@
+#version: '3.8'
+
+services:
+  # 后端服务
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: archive-backend
+    ports:
+      - "8080:8080"
+    depends_on:
+      #- mysql
+      - redis
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/archive_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=123456
+      - SPRING_REDIS_HOST=redis
+      - SPRING_PROFILES_ACTIVE=docker
+    volumes:
+      - ./uploads:/app/uploads
+    networks:
+      - archive-network
+    restart: unless-stopped
+
+  # 前端服务
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: archive-frontend
+    ports:
+      - "8000:80"
+    depends_on:
+      - backend
+    networks:
+      - archive-network
+    restart: unless-stopped
+
+  # MySQL数据库
+  mysql:
+    image: mysql:8.0
+    container_name: archive-mysql
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=wznazj123!@#
+      - MYSQL_DATABASE=archive_db
+      - MYSQL_USER=archive_user
+      - MYSQL_PASSWORD=archive_pass
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./backend/src/main/resources/db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - archive-network
+    restart: unless-stopped
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --default-authentication-plugin=mysql_native_password
+
+  # Redis缓存
+  redis:
+    image: redis:alpine
+    container_name: archive-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - archive-network
+    restart: unless-stopped
+
+networks:
+  archive-network:
+    driver: bridge
+
+volumes:
+  mysql-data:
