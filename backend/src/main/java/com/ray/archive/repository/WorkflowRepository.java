@@ -12,6 +12,9 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * 工作流仓库接口
+ */
 @Repository
 public interface WorkflowRepository extends JpaRepository<Workflow, Long>, JpaSpecificationExecutor<Workflow> {
     
@@ -51,4 +54,29 @@ public interface WorkflowRepository extends JpaRepository<Workflow, Long>, JpaSp
     
     // 检查流程编码是否存在
     boolean existsByCodeAndIdNot(String code, Long id);
+
+    Optional<Workflow> findByWorkflowKey(String workflowKey);
+    
+    List<Workflow> findByProcessType(String processType);
+    
+    Page<Workflow> findByNameContaining(String name, Pageable pageable);
+    
+    List<Workflow> findByIsActiveTrue();
+    
+    boolean existsByWorkflowKey(String workflowKey);
+    
+    @Query("SELECT w FROM Workflow w WHERE " +
+           "(:name IS NULL OR w.name LIKE %:name%) AND " +
+           "(:category IS NULL OR w.category = :category) AND " +
+           "(:processType IS NULL OR w.processType = :processType) AND " +
+           "(:isActive IS NULL OR w.isActive = :isActive)")
+    Page<Workflow> findByFilters(
+            @Param("name") String name,
+            @Param("category") String category,
+            @Param("processType") String processType,
+            @Param("isActive") Boolean isActive,
+            Pageable pageable);
+    
+    @Query("SELECT w.processType, COUNT(w) FROM Workflow w GROUP BY w.processType")
+    List<Object[]> countByProcessTypes();
 } 

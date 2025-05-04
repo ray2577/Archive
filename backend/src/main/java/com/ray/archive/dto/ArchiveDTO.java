@@ -31,12 +31,12 @@ public class ArchiveDTO {
     @NotBlank(message = "档案编号不能为空")
     @Size(max = 50, message = "档案编号长度不能超过50个字符")
     @ApiModelProperty(value = "档案编号", required = true, example = "ARC20230001")
-    private String code;
+    private String fileNumber;
 
     @NotBlank(message = "档案名称不能为空")
     @Size(max = 200, message = "档案名称长度不能超过200个字符")
     @ApiModelProperty(value = "档案名称", required = true, example = "财务报表2023")
-    private String name;
+    private String title;
 
     @ApiModelProperty(value = "档案类型", example = "FINANCIAL")
     private String type;
@@ -50,12 +50,16 @@ public class ArchiveDTO {
     @ApiModelProperty(value = "负责人", example = "张三")
     private String responsible;
 
-    @ApiModelProperty(value = "档案状态", example = "AVAILABLE", notes = "可选值: AVAILABLE(在库), BORROWED(借出), PROCESSING(处理中)")
+    @ApiModelProperty(value = "档案状态", example = "AVAILABLE", notes = "可选值: AVAILABLE(在库), BORROWED(借出), PROCESSING(处理中), ARCHIVED(已归档), SHARED(已分享), DRAFT(草稿), DELETED(已删除)")
     private String status;
 
     @Size(max = 2000, message = "档案描述长度不能超过2000个字符")
     @ApiModelProperty(value = "档案描述", example = "2023年第一季度财务报表，包含资产负债表和损益表")
     private String description;
+
+    @Size(max = 2000, message = "备注长度不能超过2000个字符")
+    @ApiModelProperty(value = "备注", example = "该报表已经过财务部门审核")
+    private String remarks;
 
     @ApiModelProperty(value = "关键词列表", example = "[\"财务\", \"季度\", \"报表\"]")
     private List<String> keywords;
@@ -63,14 +67,24 @@ public class ArchiveDTO {
     @ApiModelProperty(value = "文件URL", example = "files/4a5b8c2d-1234-5678-90ab-cdef01234567.pdf")
     private String fileUrl;
 
+    @ApiModelProperty(value = "文件路径", example = "/data/archives/financials/4a5b8c2d-1234-5678-90ab-cdef01234567.pdf")
+    private String filePath;
+
     @ApiModelProperty(value = "文件类型", example = "pdf")
     private String fileType;
 
     @ApiModelProperty(value = "文件大小(字节)", example = "1024000")
     private Long fileSize;
 
-    @ApiModelProperty(value = "借阅次数", example = "5")
-    private Integer borrowCount;
+    @ApiModelProperty(value = "下载次数", example = "5")
+    private Integer downloadCount;
+
+    @ApiModelProperty(value = "是否已分享", example = "false")
+    private Boolean shared;
+
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @ApiModelProperty(value = "分享过期时间", example = "2023-06-30 23:59:59")
+    private LocalDateTime shareExpireTime;
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @ApiModelProperty(value = "创建时间", example = "2023-01-15 10:30:00")
@@ -81,10 +95,10 @@ public class ArchiveDTO {
     private LocalDateTime updateTime;
 
     @ApiModelProperty(value = "创建人", example = "admin")
-    private String createdBy;
+    private String creator;
 
     @ApiModelProperty(value = "更新人", example = "admin")
-    private String updatedBy;
+    private String updater;
 
     @ApiModelProperty(value = "是否删除", example = "false")
     private Boolean deleted;

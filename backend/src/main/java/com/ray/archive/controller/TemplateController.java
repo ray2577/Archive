@@ -1,9 +1,9 @@
 package com.ray.archive.controller;
 
-import com.ray.archive.common.ApiResponse;
+import com.ray.archive.dto.ApiResponse;
 import com.ray.archive.dto.ArchiveTemplateDTO;
 import com.ray.archive.dto.PageResult;
-import com.ray.archive.service.TemplateService;
+import com.ray.archive.service.ArchiveTemplateService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
@@ -29,7 +29,7 @@ import java.util.Map;
 @Api(tags = "档案模板管理", description = "提供档案模板的CRUD操作和预览生成功能")
 public class TemplateController {
 
-    private final TemplateService templateService;
+    private final ArchiveTemplateService templateService;
     
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ApiOperation("创建档案模板")

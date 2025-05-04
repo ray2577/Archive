@@ -6,15 +6,129 @@ import com.ray.archive.dto.WorkflowInstanceDTO;
 import com.ray.archive.dto.WorkflowTaskDTO;
 import com.ray.archive.entity.Workflow;
 import org.springframework.core.io.Resource;
+import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * 工作流服务接口
  */
+@Service
 public interface WorkflowService {
+    
+    /**
+     * 保存工作流
+     * @param workflow 工作流
+     * @return 保存后的工作流
+     */
+    Workflow save(Workflow workflow);
+    
+    /**
+     * 根据ID查询工作流
+     * @param id 工作流ID
+     * @return 工作流
+     */
+    Optional<Workflow> findById(Long id);
+    
+    /**
+     * 根据工作流键查询工作流
+     * @param workflowKey 工作流键
+     * @return 工作流
+     */
+    Optional<Workflow> findByWorkflowKey(String workflowKey);
+    
+    /**
+     * 查询所有工作流
+     * @param pageable 分页参数
+     * @return 工作流分页结果
+     */
+    Page<Workflow> findAll(Pageable pageable);
+    
+    /**
+     * 根据分类查询工作流
+     * @param category 分类
+     * @return 工作流列表
+     */
+    List<Workflow> findByCategory(String category);
+    
+    /**
+     * 根据流程类型查询工作流
+     * @param processType 流程类型
+     * @return 工作流列表
+     */
+    List<Workflow> findByProcessType(String processType);
+    
+    /**
+     * 根据名称模糊查询工作流
+     * @param name 名称
+     * @param pageable 分页参数
+     * @return 工作流分页结果
+     */
+    Page<Workflow> findByNameContaining(String name, Pageable pageable);
+    
+    /**
+     * 查询所有激活的工作流
+     * @return 工作流列表
+     */
+    List<Workflow> findByIsActiveTrue();
+    
+    /**
+     * 删除工作流
+     * @param id 工作流ID
+     */
+    void deleteById(Long id);
+    
+    /**
+     * 激活/禁用工作流
+     * @param id 工作流ID
+     * @param isActive 是否激活
+     * @return 工作流
+     */
+    Workflow updateActiveStatus(Long id, boolean isActive);
+    
+    /**
+     * 判断工作流键是否存在
+     * @param workflowKey 工作流键
+     * @return 是否存在
+     */
+    boolean existsByWorkflowKey(String workflowKey);
+    
+    /**
+     * 分页查询工作流
+     * @param page 页码
+     * @param pageSize 每页条数
+     * @param name 名称
+     * @param category 分类
+     * @param processType 流程类型
+     * @param isActive 是否激活
+     * @return 分页结果
+     */
+    PageResult<Workflow> getWorkflows(int page, int pageSize, String name, String category, 
+            String processType, Boolean isActive);
+    
+    /**
+     * 部署工作流
+     * @param id 工作流ID
+     * @return 工作流
+     */
+    Workflow deployWorkflow(Long id);
+    
+    /**
+     * 获取流程类型分布
+     * @return 流程类型分布
+     */
+    Map<String, Long> getProcessTypeDistribution();
+    
+    /**
+     * 获取分类分布
+     * @return 分类分布
+     */
+    Map<String, Long> getCategoryDistribution();
     
     /**
      * 创建工作流定义
@@ -39,33 +153,11 @@ public interface WorkflowService {
     WorkflowDTO getWorkflowById(Long id);
     
     /**
-     * 分页获取工作流列表
-     * @param page 页码
-     * @param pageSize 每页大小
-     * @param name 工作流名称
-     * @param category 工作流分类
-     * @param status 工作流状态
-     * @param sortBy 排序字段
-     * @param sortDirection 排序方向
-     * @return 分页结果
-     */
-    PageResult<WorkflowDTO> getWorkflows(int page, int pageSize, String name, 
-                                        String category, String status,
-                                        String sortBy, String sortDirection);
-    
-    /**
      * 删除工作流
      * @param id 工作流ID
      * @return 是否删除成功
      */
     boolean deleteWorkflow(Long id);
-    
-    /**
-     * 发布工作流
-     * @param id 工作流ID
-     * @return 发布后的工作流DTO
-     */
-    WorkflowDTO deployWorkflow(Long id);
     
     /**
      * 启动工作流

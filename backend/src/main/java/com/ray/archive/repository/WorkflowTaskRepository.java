@@ -13,6 +13,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * 工作流任务仓库接口
+ */
 @Repository
 public interface WorkflowTaskRepository extends JpaRepository<WorkflowTask, Long>, JpaSpecificationExecutor<WorkflowTask> {
     
@@ -65,4 +68,14 @@ public interface WorkflowTaskRepository extends JpaRepository<WorkflowTask, Long
     // 查找逾期任务
     @Query("SELECT wt FROM WorkflowTask wt WHERE wt.status = 'PENDING' AND wt.dueDate < :now")
     List<WorkflowTask> findOverdueTasks(@Param("now") LocalDateTime now);
+
+    Page<WorkflowTask> findByAssigneeAndStatus(String assignee, String status, Pageable pageable);
+    
+    List<WorkflowTask> findByWorkflowInstanceIdAndStatus(Long workflowInstanceId, String status);
+    
+    long countByStatus(String status);
+    
+    long countByAssigneeAndStatus(String assignee, String status);
+    
+    List<WorkflowTask> findByDueDateBefore(LocalDateTime dueDate);
 } 

@@ -27,12 +27,24 @@ public class StatisticsDTO {
 
     @ApiModelProperty(value = "借出档案数", example = "150")
     private Long borrowed;
+    
+    @ApiModelProperty(value = "已归档档案数", example = "200")
+    private Long archived;
+    
+    @ApiModelProperty(value = "草稿档案数", example = "50")
+    private Long draft;
+    
+    @ApiModelProperty(value = "已分享档案数", example = "80")
+    private Long shared;
 
     @ApiModelProperty(value = "本月新增档案数", example = "45")
     private Long newThisMonth;
 
     @ApiModelProperty(value = "按类型统计", notes = "键为档案类型，值为数量")
     private Map<String, Long> typeDistribution;
+    
+    @ApiModelProperty(value = "按分类统计", notes = "键为档案分类，值为数量")
+    private Map<String, Long> categoryDistribution;
 
     @ApiModelProperty(value = "按状态统计", notes = "键为档案状态，值为数量")
     private Map<String, Long> statusDistribution;
@@ -51,4 +63,10 @@ public class StatisticsDTO {
 
     @ApiModelProperty(value = "平均借阅时长(天)", example = "7.5")
     private Double averageBorrowDuration;
+    
+    @ApiModelProperty(value = "总下载次数", example = "2500")
+    private Long totalDownloads;
+    
+    @ApiModelProperty(value = "热门档案", notes = "键为档案ID，值为下载次数")
+    private Map<Long, Integer> hotArchives;
 } 

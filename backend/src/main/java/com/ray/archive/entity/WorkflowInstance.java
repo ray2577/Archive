@@ -7,6 +7,7 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 
 /**
  * 工作流实例实体类
@@ -67,4 +68,6 @@ public class WorkflowInstance {
     private String comment;  // 流程备注
     
     private Integer priority = 0;  // 优先级: 0=低, 1=中, 2=高, 3=紧急
+
+    private Map content;
 } 

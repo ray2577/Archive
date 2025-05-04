@@ -4,12 +4,12 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 import java.time.LocalDateTime;
 
@@ -76,4 +76,8 @@ public class WorkflowDTO {
 
     @ApiModelProperty(value = "更新人", example = "admin")
     private String updater;
+
+    private String processType;
+    private String definition;
+
 } 

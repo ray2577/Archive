@@ -14,7 +14,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * 档案服务接口
+ */
 public interface ArchiveService {
+    // 基础CRUD方法
     Archive save(Archive archive);
     Optional<Archive> findById(Long id);
     Optional<Archive> findByFileNumber(String fileNumber);
@@ -25,26 +29,27 @@ public interface ArchiveService {
     boolean existsByFileNumber(String fileNumber);
     List<Archive> findByStatus(String status);
     
-    // New methods for statistics and file operations
+    // 统计相关方法
     long count();
     long countByStatus(String status);
+    
+    // 文件操作相关方法
     Resource loadFileAsResource(Long id);
     List<Map<String, Object>> getBorrowRecords(Map<String, String> params);
     
-    // 根据ArchiveController方法添加的新方法
     /**
      * 获取档案列表，支持分页、排序和过滤
      * @param page 页码
      * @param pageSize 每页条数
-     * @param code 档案编号
-     * @param name 档案名称
+     * @param fileNumber 档案编号
+     * @param title 档案标题
      * @param type 档案类型
      * @param status 档案状态
      * @param sortBy 排序字段
      * @param sortDirection 排序方向
      * @return 分页结果
      */
-    PageResult<ArchiveDTO> getArchives(int page, int pageSize, String code, String name, 
+    PageResult<ArchiveDTO> getArchives(int page, int pageSize, String fileNumber, String title, 
                                       String type, String status, String sortBy, String sortDirection);
     
     /**
@@ -53,6 +58,13 @@ public interface ArchiveService {
      * @return 档案DTO
      */
     ArchiveDTO getArchiveById(Long id);
+    
+    /**
+     * 根据档案编号获取档案详情
+     * @param fileNumber 档案编号
+     * @return 档案DTO
+     */
+    ArchiveDTO getArchiveByFileNumber(String fileNumber);
     
     /**
      * 创建新档案
@@ -64,11 +76,12 @@ public interface ArchiveService {
     
     /**
      * 更新档案
+     * @param id 档案ID
      * @param archiveDTO 档案数据
      * @param file 档案文件
      * @return 更新后的档案DTO
      */
-    ArchiveDTO updateArchive(ArchiveDTO archiveDTO, MultipartFile file);
+    ArchiveDTO updateArchive(Long id, ArchiveDTO archiveDTO, MultipartFile file);
     
     /**
      * 删除档案
@@ -115,4 +128,40 @@ public interface ArchiveService {
      * @return 统计数据DTO
      */
     StatisticsDTO getArchiveStatistics();
+    
+    /**
+     * 分享档案
+     * @param id 档案ID
+     * @param expireDays 过期天数
+     * @return 分享URL
+     */
+    String shareArchive(Long id, Integer expireDays);
+    
+    /**
+     * 下载档案资源
+     * @param id 档案ID
+     * @return 档案资源
+     */
+    Resource downloadArchive(Long id);
+    
+    /**
+     * 导出档案
+     * @param filters 过滤条件
+     * @return 导出资源
+     */
+    Resource exportArchives(Map<String, Object> filters);
+    
+    /**
+     * 批量导出档案
+     * @param ids 档案ID列表
+     * @return 导出资源
+     */
+    Resource batchExportArchives(List<Long> ids);
+    
+    /**
+     * 导入档案
+     * @param file 导入文件
+     * @return 导入数量
+     */
+    int importArchives(MultipartFile file);
 } 

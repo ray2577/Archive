@@ -59,4 +59,12 @@ public class Workflow {
     private String updater;  // 更新人
 
     private Boolean deleted = false;  // 是否删除
+
+    private LocalDateTime deployTime;
+    private boolean IsDeployed;
+    private boolean IsActive;
+
+    private String processType;
+
+    private String definition;
 } 

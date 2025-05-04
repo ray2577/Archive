@@ -7,6 +7,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -41,6 +42,12 @@ public class PageResult<T> {
     @ApiModelProperty(value = "是否有上一页", example = "false")
     private boolean hasPrevious;
 
+    public <E> PageResult(ArrayList<E> es, long l, int page, int pageSize, int i) {
+    }
+
+    public PageResult(List<WorkflowInstanceDTO> dtos, long totalElements, int page, int pageSize, int totalPages) {
+    }
+
     /**
      * 从Spring Data Page创建PageResult对象
      */
@@ -70,4 +77,6 @@ public class PageResult<T> {
                 .hasPrevious(false)
                 .build();
     }
-} 
+
+
+}

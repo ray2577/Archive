@@ -1,19 +1,42 @@
 package com.ray.archive.repository;
 
 import com.ray.archive.entity.BorrowRecord;
-import com.ray.archive.entity.User;
+import com.ray.archive.entity.BorrowStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.stereotype.Repository;
 
-import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
-public interface BorrowRecordRepository extends JpaRepository<BorrowRecord, Long> {
-    List<BorrowRecord> findByUser(User user);
-    List<BorrowRecord> findByStatus(String status);
+/**
+ * 借阅记录数据访问层
+ */
+@Repository
+public interface BorrowRecordRepository extends JpaRepository<BorrowRecord, Long>, JpaSpecificationExecutor<BorrowRecord> {
     
-    @Query("SELECT br FROM BorrowRecord br WHERE br.status = 'BORROWED' AND br.plannedReturnTime < ?1")
-    List<BorrowRecord> findOverdueRecords(LocalDateTime currentTime);
+    /**
+     * 根据档案ID查找借阅记录
+     */
+    List<BorrowRecord> findByArchiveId(Long archiveId);
     
-    List<BorrowRecord> findByUserAndStatus(User user, String status);
+    /**
+     * 根据借阅人查找借阅记录
+     */
+    List<BorrowRecord> findByBorrower(String borrower);
+    
+    /**
+     * 根据状态查找借阅记录
+     */
+    List<BorrowRecord> findByStatus(BorrowStatus status);
+    
+    /**
+     * 根据档案ID和状态查找借阅记录
+     */
+    Optional<BorrowRecord> findByArchiveIdAndStatus(Long archiveId, BorrowStatus status);
+    
+    /**
+     * 获取档案的借阅次数
+     */
+    long countByArchiveId(Long archiveId);
 } 

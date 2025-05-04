@@ -21,29 +21,33 @@ public class BorrowRecord {
     @JoinColumn(name = "archive_id", nullable = false)
     private Archive archive;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
-
     @Column(nullable = false)
-    private LocalDateTime borrowTime;
+    private String borrower; // 借阅人姓名
+    
+    private String borrowerDepartment; // 借阅人部门
 
-    private LocalDateTime returnTime;
+    @Column(name = "borrow_date", nullable = false)
+    private LocalDateTime borrowDate; // 借阅日期
 
-    private LocalDateTime plannedReturnTime;
+    @Column(name = "expected_return_date")
+    private LocalDateTime expectedReturnDate; // 预计归还日期
 
+    @Column(name = "actual_return_date")
+    private LocalDateTime actualReturnDate; // 实际归还日期
+
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private String status;  // BORROWED, RETURNED, OVERDUE
+    private BorrowStatus status; // 借阅状态
 
-    private String purpose;  // 借阅目的
+    private String purpose; // 借阅目的
 
+    private String approvedBy; // 审批人
+    
     @CreatedDate
-    private LocalDateTime createTime;
+    private LocalDateTime createTime; // 创建时间
 
     @LastModifiedDate
-    private LocalDateTime updateTime;
+    private LocalDateTime updateTime; // 更新时间
 
-    private String approver;  // 审批人
-
-    private String remarks;  // 备注
+    private String remarks; // 备注
 } 

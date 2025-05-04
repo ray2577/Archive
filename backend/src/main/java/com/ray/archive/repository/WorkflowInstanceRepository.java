@@ -13,63 +13,53 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * 工作流实例仓库接口
+ */
 @Repository
 public interface WorkflowInstanceRepository extends JpaRepository<WorkflowInstance, Long>, JpaSpecificationExecutor<WorkflowInstance> {
     
-    // 基本查询方法
-    Optional<WorkflowInstance> findByProcessInstanceId(String processInstanceId);
-    List<WorkflowInstance> findByInitiator(String initiator);
+    Optional<WorkflowInstance> findByInstanceId(String instanceId);
+    
+    List<WorkflowInstance> findByWorkflowId(Long workflowId);
+    
     List<WorkflowInstance> findByStatus(String status);
-    List<WorkflowInstance> findByResult(String result);
     
-    // 按业务键查询
-    Optional<WorkflowInstance> findByBusinessKey(String businessKey);
+    List<WorkflowInstance> findByInitiator(String initiator);
     
-    // 按流程类型查询
-    Page<WorkflowInstance> findByProcessType(String processType, Pageable pageable);
+    Page<WorkflowInstance> findByStatusIn(List<String> statuses, Pageable pageable);
     
-    // 组合查询
+    Page<WorkflowInstance> findByInitiatorAndStatusIn(String initiator, List<String> statuses, Pageable pageable);
+    
     @Query("SELECT wi FROM WorkflowInstance wi WHERE " +
-           "(:processName IS NULL OR wi.workflow.name LIKE %:processName%) AND " +
-           "(:initiator IS NULL OR wi.initiator = :initiator) AND " +
            "(:processType IS NULL OR wi.processType = :processType) AND " +
+           "(:businessKey IS NULL OR wi.businessKey = :businessKey) AND " +
+           "(:initiator IS NULL OR wi.initiator = :initiator) AND " +
            "(:status IS NULL OR wi.status = :status) AND " +
-           "(:result IS NULL OR wi.result = :result) AND " +
            "(:startDate IS NULL OR wi.startTime >= :startDate) AND " +
            "(:endDate IS NULL OR wi.startTime <= :endDate)")
     Page<WorkflowInstance> findByFilters(
-            @Param("processName") String processName,
-            @Param("initiator") String initiator,
             @Param("processType") String processType,
+            @Param("businessKey") String businessKey,
+            @Param("initiator") String initiator,
             @Param("status") String status,
-            @Param("result") String result,
             @Param("startDate") LocalDateTime startDate,
             @Param("endDate") LocalDateTime endDate,
             Pageable pageable);
     
-    // 获取当前任务为特定任务的实例
-    List<WorkflowInstance> findByCurrentTask(String taskName);
+    long countByStatus(String status);
     
-    // 获取当前处理人的实例
-    List<WorkflowInstance> findByCurrentAssignee(String assignee);
+    long countByInitiatorAndStatus(String initiator, String status);
     
-    // 统计各类型流程的数量
     @Query("SELECT wi.processType, COUNT(wi) FROM WorkflowInstance wi GROUP BY wi.processType")
     List<Object[]> countByProcessTypes();
     
-    // 统计每日流程启动数量
-    @Query("SELECT FUNCTION('DATE', wi.startTime) as startDate, COUNT(wi) FROM WorkflowInstance wi " +
-           "WHERE wi.startTime BETWEEN :startDate AND :endDate " +
-           "GROUP BY startDate ORDER BY startDate")
-    List<Object[]> countDailyStarted(
-            @Param("startDate") LocalDateTime startDate,
-            @Param("endDate") LocalDateTime endDate);
+    @Query("SELECT wi.status, COUNT(wi) FROM WorkflowInstance wi GROUP BY wi.status")
+    List<Object[]> countByStatuses();
     
-    // 统计流程平均耗时
-    @Query("SELECT AVG(wi.duration) FROM WorkflowInstance wi WHERE wi.status = 'COMPLETED'")
-    Double getAverageDuration();
+    @Query("SELECT FUNCTION('FORMAT', wi.startTime, 'yyyy-MM') as month, COUNT(wi) FROM WorkflowInstance wi GROUP BY month ORDER BY month DESC")
+    List<Object[]> countByMonths();
     
-    // 统计特定流程类型的平均耗时
-    @Query("SELECT AVG(wi.duration) FROM WorkflowInstance wi WHERE wi.status = 'COMPLETED' AND wi.processType = :processType")
-    Double getAverageDurationByType(@Param("processType") String processType);
+    @Query("SELECT wi FROM WorkflowInstance wi WHERE wi.businessKey = :businessKey AND wi.processType = :processType")
+    Optional<WorkflowInstance> findByBusinessKeyAndProcessType(@Param("businessKey") String businessKey, @Param("processType") String processType);
 } 

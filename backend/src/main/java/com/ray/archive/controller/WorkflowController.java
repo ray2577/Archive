@@ -1,10 +1,6 @@
 package com.ray.archive.controller;
 
-import com.ray.archive.common.ApiResponse;
-import com.ray.archive.dto.PageResult;
-import com.ray.archive.dto.WorkflowDTO;
-import com.ray.archive.dto.WorkflowInstanceDTO;
-import com.ray.archive.dto.WorkflowTaskDTO;
+import com.ray.archive.dto.*;
 import com.ray.archive.service.WorkflowService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
