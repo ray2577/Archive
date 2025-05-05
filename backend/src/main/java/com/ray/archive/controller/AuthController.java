@@ -54,6 +54,91 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
+    /**
+     * 获取当前登录用户信息
+     */
+    @GetMapping("/user-info")
+    public ResponseEntity<?> getUserInfo(HttpServletRequest request) {
+        logger.info("获取当前用户信息");
+        logger.info("请求头 Authorization: {}", request.getHeader("Authorization"));
+        
+        try {
+            // 获取当前用户认证信息
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            logger.info("认证对象: {}", authentication);
+            
+            if (authentication == null) {
+                logger.warn("认证对象为空");
+                return ResponseEntity.status(401).body(Map.of(
+                    "success", false,
+                    "code", 401,
+                    "message", "认证对象为空，请重新登录"
+                ));
+            }
+            
+            if (!authentication.isAuthenticated()) {
+                logger.warn("用户未认证");
+                return ResponseEntity.status(401).body(Map.of(
+                    "success", false,
+                    "code", 401,
+                    "message", "用户未认证，请重新登录"
+                ));
+            }
+            
+            if (authentication.getPrincipal().equals("anonymousUser")) {
+                logger.warn("匿名用户");
+                return ResponseEntity.status(401).body(Map.of(
+                    "success", false,
+                    "code", 401,
+                    "message", "匿名用户，请重新登录"
+                ));
+            }
+            
+            // 获取用户名
+            String username = authentication.getName();
+            logger.info("认证用户名: {}", username);
+            
+            // 查询用户详细信息
+            logger.info("查询数据库中的用户信息");
+            Optional<User> userOpt = userService.findByUsername(username);
+            
+            if (userOpt.isEmpty()) {
+                logger.warn("数据库中未找到用户: {}", username);
+                return ResponseEntity.status(404).body(Map.of(
+                    "success", false,
+                    "code", 404,
+                    "message", "未找到用户信息"
+                ));
+            }
+            
+            User user = userOpt.get();
+            logger.info("找到用户: {}, ID: {}", user.getUsername(), user.getId());
+            
+            // 构建响应
+            Map<String, Object> userData = new HashMap<>();
+            userData.put("id", user.getId());
+            userData.put("username", user.getUsername());
+            userData.put("email", user.getEmail());
+            userData.put("roles", user.getRoles());
+            userData.put("enabled", user.getEnabled());
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("code", 200);
+            response.put("success", true);
+            response.put("data", userData);
+            
+            logger.info("用户信息查询成功，返回数据");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            logger.error("获取用户信息失败: {}", e.getMessage(), e);
+            return ResponseEntity.status(500).body(Map.of(
+                "success", false,
+                "code", 500,
+                "message", "获取用户信息失败: " + e.getMessage()
+            ));
+        }
+    }
+
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Map<String, String> loginRequest) {
         logger.info("收到登录请求: {}", loginRequest.get("username"));

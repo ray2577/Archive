@@ -46,20 +46,55 @@ export const useUserStore = defineStore('user', () => {
 
   async function login(username, password) {
     try {
-      const response = await request.post('/api/auth/login', { username, password })
-      setToken(response.token)
+      // 修改API路径，移除重复的/api前缀
+      const response = await request.post('/auth/login', { username, password })
+      console.log('Login response:', response);
+      
+      // 处理不同的响应格式
+      // 情况1: 直接返回token等数据
+      // 情况2: 包含在data字段中
+      // 情况3: 包含在success和data中
+      
+      let tokenData = response;
+      
+      // 处理嵌套的返回结构
+      if (response.data && typeof response.data === 'object') {
+        console.log('Using nested data structure');
+        tokenData = response.data;
+      }
+      
+      // 检查返回数据中是否包含token
+      if (!tokenData.token) {
+        console.error('登录响应中不包含token:', response);
+        
+        // 尝试从其他结构中获取token
+        if (tokenData.success === false) {
+          console.error('登录失败，服务器返回错误:', tokenData.message || '未知错误');
+          return false;
+        }
+        
+        return false;
+      }
+      
+      console.log('获取到token:', tokenData.token.substring(0, 10) + '...');
+      setToken(tokenData.token);
 
       // 构建用户信息对象
       const userInfoData = {
-        id: response.userId || 0,
-        username: response.username || username,
-        role: response.roles && response.roles.length > 0 ? response.roles[0].authority : 'user'
+        id: tokenData.userId || 0,
+        username: tokenData.username || username,
+        role: tokenData.roles && tokenData.roles.length > 0 ? 
+              tokenData.roles[0].authority || tokenData.roles[0] : 'user'
       };
 
+      console.log('用户信息数据:', userInfoData);
       setUserInfo(userInfoData)
       return true
     } catch (error) {
-      console.error('Login failed:', error)
+      console.error('登录失败:', error)
+      if (error.message) {
+        console.error('错误消息:', error.message);
+      }
       return false
     }
   }
@@ -70,6 +105,22 @@ export const useUserStore = defineStore('user', () => {
       return response
     } catch (error) {
       console.error('Registration failed:', error)
+      throw error
+    }
+  }
+
+  // 添加fetchUserInfo方法，用于路由守卫中调用
+  async function fetchUserInfo() {
+    try {
+      const response = await request.get('/auth/user-info')
+      if (response && response.code === 200 && response.data) {
+        setUserInfo(response.data)
+      } else {
+        throw new Error('获取用户信息失败')
+      }
+      return userInfo.value
+    } catch (error) {
+      console.error('Failed to fetch user info:', error)
       throw error
     }
   }
@@ -119,6 +170,7 @@ export const useUserStore = defineStore('user', () => {
     logout,
     login,
     register,
+    fetchUserInfo,
     fetchUserProfile,
     updateProfile,
     changePassword

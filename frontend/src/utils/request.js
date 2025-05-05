@@ -37,8 +37,9 @@ service.interceptors.request.use(
           const userStore = useUserStore()
           if (userStore && userStore.token) {
             config.headers['Authorization'] = `Bearer ${userStore.token}`
-          } else {
-            console.warn('用户Token不存在，请求可能会被拒绝')
+          } else if (DEBUG) {
+            // 只在调试模式下显示token缺失警告
+            console.debug('用户Token不存在，请求可能会被拒绝')
           }
         } catch (e) {
           console.error('获取token时出错:', e)
@@ -87,6 +88,12 @@ service.interceptors.response.use(
 
     // 检查响应状态码
     if (response.status >= 200 && response.status < 300) {
+      // 特别处理登录接口
+      if (fullUrl.includes('/auth/login') || fullUrl.includes('/api/auth/login')) {
+        console.log('处理登录响应:', res);
+        return res;
+      }
+      
       // 如果后端返回的不是标准结构，进行适配
       if (typeof res === 'object' && res !== null && 'code' in res) {
         // 标准响应格式，直接返回

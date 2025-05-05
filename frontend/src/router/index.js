@@ -337,7 +337,7 @@ router.beforeEach(async (to, from, next) => {
           }
         } catch (error) {
           // 获取用户信息失败，清除token并跳转到登录页
-          userStore.removeToken()
+          userStore.logout()
           next(`/login?redirect=${to.path}`)
         }
       } else {

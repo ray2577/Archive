@@ -119,7 +119,17 @@ const handleLogin = async () => {
         
         // 重定向到登录前页面或首页
         const redirect = route.query.redirect || '/dashboard'
-        router.push(redirect)
+        console.log('准备跳转到:', redirect)
+        
+        // 确保跳转逻辑正常执行
+        try {
+          await router.push(redirect)
+          console.log('跳转成功')
+        } catch (routeError) {
+          console.error('路由跳转失败:', routeError)
+          // 尝试备用跳转方式
+          window.location.href = redirect
+        }
       } else {
         ElMessage.error('登录失败，请检查用户名和密码')
       }

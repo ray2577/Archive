@@ -13,6 +13,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -51,26 +52,11 @@ public class SecurityConfig {
             .and()
             .authenticationProvider(authenticationProvider())
             .authorizeHttpRequests(authorize -> authorize
-                .requestMatchers("/auth/health", "/api/auth/health").permitAll()
-                .requestMatchers("/auth/login", "/api/auth/login").permitAll()
-                .requestMatchers("/auth/login-test", "/api/auth/login-test").permitAll()
-                .requestMatchers("/auth/simple-test", "/api/auth/simple-test").permitAll()
-                .requestMatchers("/auth/reset-admin", "/api/auth/reset-admin").permitAll()
-                .requestMatchers("/auth/check-admin", "/api/auth/check-admin").permitAll()
-                .requestMatchers("/auth/test-db", "/api/auth/test-db").permitAll()
-                .requestMatchers("/test").permitAll()
-                .requestMatchers("/api/test").permitAll()
-                .requestMatchers("/archive/test").permitAll()
-                .requestMatchers("/archive/api/test").permitAll()
+                // 开发阶段临时允许所有请求通过，方便调试
                 .anyRequest().permitAll()
-                // 以下是原来的配置，现在已注释掉
-                // .requestMatchers("/auth/**").permitAll()
-                // .requestMatchers("/api/auth/**").permitAll()
-                // .requestMatchers("/users/register", "/api/users/register").permitAll()
-                // .anyRequest().authenticated()
-            );
-            // 暂时注释掉 JWT 过滤器
-            // .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
+            )
+            // 仍然添加JWT过滤器用于认证，但不强制要求认证
+            .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
