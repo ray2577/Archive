@@ -1,12 +1,18 @@
 package com.ray.archive.entity;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.*;
 import lombok.Data;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -18,6 +24,10 @@ import java.util.Map;
 @Table(name = "workflow_instances")
 @EntityListeners(AuditingEntityListener.class)
 public class WorkflowInstance {
+    
+    private static final Logger logger = LoggerFactory.getLogger(WorkflowInstance.class);
+    private static final ObjectMapper objectMapper = new ObjectMapper();
+    
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -69,5 +79,43 @@ public class WorkflowInstance {
     
     private Integer priority = 0;  // 优先级: 0=低, 1=中, 2=高, 3=紧急
 
-    private Map content;
+    // Convert the Map field to proper serialized string format
+    @Transient // This will exclude the field from being persisted directly
+    private Map<String, Object> content = new HashMap<>();
+    
+    // JSON serialized content field for database storage
+    @Column(columnDefinition = "TEXT", name = "content_json")
+    private String contentJson;
+    
+    // Getter that deserializes JSON to Map
+    public Map<String, Object> getContent() {
+        if (content.isEmpty() && contentJson != null && !contentJson.isEmpty()) {
+            try {
+                content = objectMapper.readValue(contentJson, new TypeReference<Map<String, Object>>() {});
+            } catch (JsonProcessingException e) {
+                logger.error("Error deserializing content JSON: {}", e.getMessage());
+            }
+        }
+        return content;
+    }
+    
+    // Setter that also updates the JSON representation
+    public void setContent(Map<String, Object> content) {
+        this.content = content;
+        try {
+            this.contentJson = objectMapper.writeValueAsString(content);
+        } catch (JsonProcessingException e) {
+            logger.error("Error serializing content to JSON: {}", e.getMessage());
+        }
+    }
+    
+    // Helper method to add a single key-value to the content map
+    public void addContentItem(String key, Object value) {
+        getContent().put(key, value);
+        try {
+            this.contentJson = objectMapper.writeValueAsString(content);
+        } catch (JsonProcessingException e) {
+            logger.error("Error serializing content to JSON: {}", e.getMessage());
+        }
+    }
 } 

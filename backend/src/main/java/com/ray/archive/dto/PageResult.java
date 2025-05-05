@@ -42,10 +42,17 @@ public class PageResult<T> {
     @ApiModelProperty(value = "是否有上一页", example = "false")
     private boolean hasPrevious;
 
-    public <E> PageResult(ArrayList<E> es, long l, int page, int pageSize, int i) {
-    }
-
-    public PageResult(List<WorkflowInstanceDTO> dtos, long totalElements, int page, int pageSize, int totalPages) {
+    /**
+     * 通用构造函数
+     */
+    public PageResult(List<T> records, long total, int pages, int current) {
+        this.records = records;
+        this.total = total;
+        this.pages = pages;
+        this.current = current;
+        this.size = current > 0 && pages > 0 ? (int) Math.ceil((double) total / pages) : 0;
+        this.hasNext = current < pages;
+        this.hasPrevious = current > 1;
     }
 
     /**
@@ -77,6 +84,5 @@ public class PageResult<T> {
                 .hasPrevious(false)
                 .build();
     }
-
 
 }

@@ -42,8 +42,8 @@ public class ArchiveTemplate {
     @Column(columnDefinition = "TEXT")
     private String content;  // 模板内容，HTML或JSON格式
 
-    @Column(columnDefinition = "TEXT")
-    private String schema;  // 模板字段定义，JSON格式
+    @Column(name = "template_schema", columnDefinition = "TEXT")
+    private String schemaDefinition;  // 模板字段定义，JSON格式
 
     @Column(nullable = false)
     private Boolean isActive = true;  // 是否启用

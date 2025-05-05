@@ -7,7 +7,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
 import java.util.Map;
+import java.time.LocalDateTime;
 
 /**
  * 档案统计数据传输对象
@@ -27,6 +29,9 @@ public class StatisticsDTO {
 
     @ApiModelProperty(value = "借出档案数", example = "150")
     private Long borrowed;
+    
+    @ApiModelProperty(value = "处理中档案数", example = "30")
+    private Long processing;
     
     @ApiModelProperty(value = "已归档档案数", example = "200")
     private Long archived;
@@ -69,4 +74,13 @@ public class StatisticsDTO {
     
     @ApiModelProperty(value = "热门档案", notes = "键为档案ID，值为下载次数")
     private Map<Long, Integer> hotArchives;
+
+    @ApiModelProperty(value = "最近档案", notes = "最近添加的档案列表")
+    private List<ArchiveDTO> recentArchives;
+    
+    @ApiModelProperty(value = "最常借阅档案", notes = "借阅次数最多的档案列表")
+    private List<ArchiveDTO> mostBorrowedArchives;
+    
+    @ApiModelProperty(value = "最后更新时间", example = "2023-05-15 14:30:00")
+    private LocalDateTime lastUpdated;
 } 

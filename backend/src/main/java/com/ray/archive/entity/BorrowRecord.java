@@ -1,14 +1,16 @@
 package com.ray.archive.entity;
 
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 
-@Data
+@Getter
+@Setter
 @Entity
 @Table(name = "borrow_records")
 @EntityListeners(AuditingEntityListener.class)
@@ -20,6 +22,10 @@ public class BorrowRecord {
     @ManyToOne
     @JoinColumn(name = "archive_id", nullable = false)
     private Archive archive;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User user; // 借阅用户对象
 
     @Column(nullable = false)
     private String borrower; // 借阅人姓名
@@ -36,8 +42,8 @@ public class BorrowRecord {
     private LocalDateTime actualReturnDate; // 实际归还日期
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private BorrowStatus status; // 借阅状态
+    @Column(name = "status", nullable = false, length = 20)
+    private BorrowStatus status = BorrowStatus.PENDING; // 借阅状态，设置默认值
 
     private String purpose; // 借阅目的
 
@@ -50,4 +56,40 @@ public class BorrowRecord {
     private LocalDateTime updateTime; // 更新时间
 
     private String remarks; // 备注
+    
+    // 兼容方法 - 获取状态的字符串表示
+    @Transient 
+    public String getStatusString() {
+        return this.status != null ? this.status.name() : null;
+    }
+    
+    // 从字符串设置状态
+    public void setStatusString(String statusStr) {
+        this.status = BorrowStatus.fromValue(statusStr);
+    }
+    
+    // Convenience getter/setter for service compatibility
+    public LocalDateTime getBorrowTime() {
+        return this.borrowDate;
+    }
+    
+    public void setBorrowTime(LocalDateTime borrowTime) {
+        this.borrowDate = borrowTime;
+    }
+    
+    public LocalDateTime getPlannedReturnTime() {
+        return this.expectedReturnDate;
+    }
+    
+    public void setPlannedReturnTime(LocalDateTime plannedReturnTime) {
+        this.expectedReturnDate = plannedReturnTime;
+    }
+    
+    public LocalDateTime getReturnTime() {
+        return this.actualReturnDate;
+    }
+    
+    public void setReturnTime(LocalDateTime returnTime) {
+        this.actualReturnDate = returnTime;
+    }
 } 

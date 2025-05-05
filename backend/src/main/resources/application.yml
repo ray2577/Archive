@@ -5,6 +5,9 @@ spring:
   devtools:
     add-properties: false
 
+  main:
+    allow-bean-definition-overriding: true
+
   datasource:
     url: jdbc:mysql://localhost:3306/archive_db?useSSL=false&serverTimezone=UTC
     username: root
@@ -17,16 +20,25 @@ spring:
       schema-locations: classpath:schema.sql
       data-locations: classpath:data.sql
       continue-on-error: true
+      platform: mysql
 
   jpa:
     hibernate:
-      ddl-auto: none
+      ddl-auto: update  # 更改为update模式，更稳定
     show-sql: true
     properties:
       hibernate:
         format_sql: true
         dialect: org.hibernate.dialect.MySQL8Dialect
+        generate_statistics: true
+        jdbc:
+          batch_size: 25
+          batch_versioned_data: true
+        # 禁用Hibernate类型推断
+        type_contributors: []
+        implicit_naming_strategy: org.hibernate.boot.model.naming.ImplicitNamingStrategyLegacyHbmImpl
     defer-datasource-initialization: true
+    open-in-view: false
 
   servlet:
     multipart:
@@ -76,6 +88,11 @@ logging:
     org.springframework.ai: DEBUG
     org.springframework.web: INFO
     org.hibernate: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql: TRACE
+    org.hibernate.stat: DEBUG
+    org.springframework.orm.jpa: DEBUG
+    org.springframework.transaction: DEBUG
 
 file:
   upload-dir: ./uploads/archives

@@ -1,5 +1,6 @@
 package com.ray.archive.controller;
 
+import com.ray.archive.dto.ArchiveTemplateDTO;
 import com.ray.archive.entity.ArchiveTemplate;
 import com.ray.archive.service.ArchiveTemplateService;
 import com.ray.archive.service.PdfService;
@@ -31,7 +32,7 @@ public class ArchiveTemplateController {
             @RequestParam(required = false) String userPassword,
             @RequestParam(required = false) String ownerPassword) {
         
-        ArchiveTemplate template = archiveTemplateService.getTemplateById(id);
+        ArchiveTemplateDTO template = archiveTemplateService.getTemplateById(id);
         byte[] pdfContent = pdfService.generateTemplatePdf(
             template, 
             watermark,

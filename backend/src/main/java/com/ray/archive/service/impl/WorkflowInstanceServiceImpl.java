@@ -61,7 +61,7 @@ public class WorkflowInstanceServiceImpl implements WorkflowInstanceService {
     public Optional<WorkflowInstance> findByInstanceId(String instanceId) {
         Assert.hasText(instanceId, "Instance ID must not be empty");
         logger.debug("Finding workflow instance by instance ID: {}", instanceId);
-        return workflowInstanceRepository.findByInstanceId(instanceId);
+        return workflowInstanceRepository.findByProcessInstanceId(instanceId);
     }
 
     @Override
@@ -135,14 +135,18 @@ public class WorkflowInstanceServiceImpl implements WorkflowInstanceService {
                 .orElseThrow(() -> new IllegalArgumentException("Workflow not found with id: " + workflowId));
         
         WorkflowInstance instance = new WorkflowInstance();
-        //instance.setInstanceId(UUID.randomUUID().toString());
-        //instance.setWorkflowId(workflowId);
+        instance.setProcessInstanceId(UUID.randomUUID().toString());
+        instance.setWorkflow(workflow);
         instance.setBusinessKey(businessKey);
         instance.setProcessType(workflow.getProcessType());
         instance.setInitiator(initiator);
         instance.setStatus("RUNNING");
         instance.setStartTime(LocalDateTime.now());
-        instance.setVariables(variables != null ? variables.toString() : null);
+        
+        // 处理变量
+        if (variables != null && !variables.isEmpty()) {
+            instance.setContent(variables);
+        }
         
         return workflowInstanceRepository.save(instance);
     }
@@ -177,7 +181,7 @@ public class WorkflowInstanceServiceImpl implements WorkflowInstanceService {
                 .orElseThrow(() -> new IllegalArgumentException("WorkflowInstance not found with id: " + id));
         
         instance.setStatus("CANCELLED");
-        //instance.setRemarks(reason);
+        instance.setComment(reason);
         instance.setEndTime(LocalDateTime.now());
         if (instance.getStartTime() != null) {
             long durationSeconds = java.time.Duration.between(instance.getStartTime(), instance.getEndTime()).getSeconds();
@@ -221,12 +225,11 @@ public class WorkflowInstanceServiceImpl implements WorkflowInstanceService {
         Page<WorkflowInstance> instancesPage = workflowInstanceRepository.findByFilters(
                 processType, businessKey, initiator, status, startDate, endDate, pageable);
         
-        return new PageResult<>(
+        return new PageResult<WorkflowInstance>(
                 instancesPage.getContent(),
                 instancesPage.getTotalElements(),
-                page,
-                pageSize,
-                instancesPage.getTotalPages()
+                instancesPage.getTotalPages(),
+                page
         );
     }
 

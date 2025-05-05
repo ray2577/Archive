@@ -1,5 +1,3 @@
-
-
 -- 用户表
 CREATE TABLE users (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
@@ -44,6 +42,26 @@ CREATE TABLE archives (
     keywords VARCHAR(255),
     FOREIGN KEY (creator_id) REFERENCES users(id),
     FOREIGN KEY (last_modifier_id) REFERENCES users(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 借阅记录表
+CREATE TABLE borrow_records (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    archive_id BIGINT NOT NULL,
+    user_id BIGINT,
+    borrower VARCHAR(50) NOT NULL,
+    borrower_department VARCHAR(50),
+    borrow_date DATETIME NOT NULL,
+    expected_return_date DATETIME,
+    actual_return_date DATETIME,
+    status VARCHAR(20) NOT NULL,
+    purpose VARCHAR(255),
+    approved_by VARCHAR(50),
+    create_time DATETIME,
+    update_time DATETIME,
+    remarks TEXT,
+    FOREIGN KEY (archive_id) REFERENCES archives(id),
+    FOREIGN KEY (user_id) REFERENCES users(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 聊天历史记录表
@@ -168,6 +186,17 @@ CREATE TABLE archive_number_rules (
     FOREIGN KEY (creator_id) REFERENCES users(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- 系统配置表
+CREATE TABLE system_configs (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    config_key VARCHAR(100) NOT NULL UNIQUE,
+    config_value TEXT NOT NULL,
+    description VARCHAR(255),
+    create_time DATETIME,
+    update_time DATETIME,
+    KEY idx_config_key (config_key)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- 创建索引
 CREATE INDEX idx_archives_status ON archives(status);
 CREATE INDEX idx_archives_category ON archives(category);
@@ -176,6 +205,10 @@ CREATE INDEX idx_chat_histories_create_time ON chat_histories(create_time);
 CREATE INDEX idx_access_logs_access_time ON archive_access_logs(access_time);
 CREATE INDEX idx_access_requests_status ON archive_access_requests(status);
 CREATE INDEX idx_access_requests_request_time ON archive_access_requests(request_time);
+CREATE INDEX idx_borrow_records_status ON borrow_records(status);
+CREATE INDEX idx_borrow_records_borrow_date ON borrow_records(borrow_date);
+CREATE INDEX idx_borrow_records_archive_id ON borrow_records(archive_id);
+CREATE INDEX idx_borrow_records_user_id ON borrow_records(user_id);
 
 -- 创建聊天相关索引
 CREATE INDEX idx_chat_histories_user_id ON chat_histories(user_id);

@@ -39,7 +39,7 @@ public class ArchiveNumberServiceImpl implements ArchiveNumberService {
         String serialPart = String.format("%0" + rule.getSerialLength() + "d", serial);
 
         // 组合档案编号
-        String separator = rule.getSeparator() != null ? rule.getSeparator() : "-";
+        String separator = rule.getSeparatorChar() != null ? rule.getSeparatorChar() : "-";
         return rule.getPrefix() + separator + datePart + separator + serialPart;
     }
 

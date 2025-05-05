@@ -83,7 +83,7 @@ public class ArchiveTemplateServiceImpl implements ArchiveTemplateService {
     public Optional<ArchiveTemplate> findByTemplateName(String templateName) {
         Assert.hasText(templateName, "Template name must not be empty");
         logger.debug("Finding archive template by template name: {}", templateName);
-        return archiveTemplateRepository.findByTemplateName(templateName);
+        return archiveTemplateRepository.findByName(templateName);
     }
     
     @Override
@@ -105,7 +105,7 @@ public class ArchiveTemplateServiceImpl implements ArchiveTemplateService {
         Assert.hasText(name, "Name must not be empty");
         Assert.notNull(pageable, "Pageable must not be null");
         logger.debug("Finding archive templates containing name: {} with pageable: {}", name, pageable);
-        return archiveTemplateRepository.findByTemplateNameContaining(name, pageable);
+        return archiveTemplateRepository.findByNameContaining(name, pageable);
     }
     
     @Override
@@ -164,7 +164,7 @@ public class ArchiveTemplateServiceImpl implements ArchiveTemplateService {
         
         Page<ArchiveTemplate> templatesPage;
         if (templateName != null && !templateName.isEmpty()) {
-            templatesPage = archiveTemplateRepository.findByTemplateNameContaining(templateName, pageable);
+            templatesPage = archiveTemplateRepository.findByNameContaining(templateName, pageable);
         } else if (category != null && !category.isEmpty()) {
             // 假设有一个根据分类查询的方法
             templatesPage = archiveTemplateRepository.findAll(pageable);
@@ -180,7 +180,7 @@ public class ArchiveTemplateServiceImpl implements ArchiveTemplateService {
     public boolean existsByTemplateName(String templateName) {
         Assert.hasText(templateName, "Template name must not be empty");
         logger.debug("Checking if template exists with template name: {}", templateName);
-        return archiveTemplateRepository.existsByTemplateName(templateName);
+        return archiveTemplateRepository.existsByName(templateName);
     }
     
     @Override

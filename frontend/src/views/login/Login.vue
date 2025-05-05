@@ -51,7 +51,7 @@
       </el-form>
       
       <div class="login-footer">
-        <p>© 2023 档案管理系统 - 保留所有权利</p>
+        <p>© 2025 档案管理系统 - 保留所有权利</p>
       </div>
     </div>
   </div>

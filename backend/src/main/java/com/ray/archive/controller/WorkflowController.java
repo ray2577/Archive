@@ -1,6 +1,7 @@
 package com.ray.archive.controller;
 
 import com.ray.archive.dto.*;
+import com.ray.archive.entity.Workflow;
 import com.ray.archive.service.WorkflowService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -59,7 +60,7 @@ public class WorkflowController {
             @RequestParam(required = false) String status,
             @RequestParam(defaultValue = "createTime") String sortBy,
             @RequestParam(defaultValue = "desc") String sortDirection) {
-        return ApiResponse.success(workflowService.getWorkflows(
+        return ApiResponse.success((PageResult<WorkflowDTO>) workflowService.getWorkflows(
                 page, pageSize, name, category, status, sortBy, sortDirection));
     }
     
@@ -71,7 +72,7 @@ public class WorkflowController {
     
     @PostMapping("/{id}/deploy")
     @ApiOperation("发布工作流")
-    public ApiResponse<WorkflowDTO> deployWorkflow(@PathVariable Long id) {
+    public ApiResponse<Workflow> deployWorkflow(@PathVariable Long id) {
         return ApiResponse.success(workflowService.deployWorkflow(id));
     }
     

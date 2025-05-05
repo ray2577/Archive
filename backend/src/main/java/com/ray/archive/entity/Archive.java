@@ -1,7 +1,8 @@
 package com.ray.archive.entity;
 
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -13,7 +14,8 @@ import java.util.List;
  * 档案实体类
  * 用于存储系统中的物理和电子档案信息
  */
-@Data
+@Getter
+@Setter
 @Entity
 @Table(name = "archives")
 @EntityListeners(AuditingEntityListener.class)
@@ -37,12 +39,12 @@ public class Archive {
     private String fileNumber;  // 档案编号
 
     @Column(nullable = false)
-    private String status;  // 档案状态 (AVAILABLE, BORROWED, PROCESSING, ARCHIVED, SHARED, DRAFT, DELETED)
+    private String status = "AVAILABLE";  // 档案状态 - 保留字符串类型以兼容旧代码
 
     private String location;  // 存放位置
 
     @Column(columnDefinition = "TEXT")
-    private String keywords;  // 关键词，存储为JSON字符串
+    private String keywords;  // 关键词，存储为普通字符串，而不是JSON
 
     private String responsible;  // 负责人
 
@@ -82,4 +84,17 @@ public class Archive {
     private LocalDateTime updateTime;  // 更新时间
     
     private Boolean deleted = false;  // 是否删除
+    
+    // 设置安全的getter和setter方法
+    public String getStatus() {
+        return this.status;
+    }
+    
+    public void setStatus(String status) {
+        if (status == null || status.isEmpty()) {
+            this.status = "AVAILABLE";
+        } else {
+            this.status = status;
+        }
+    }
 } 

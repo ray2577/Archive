@@ -2,6 +2,7 @@ package com.ray.archive.service.impl;
 
 import com.ray.archive.entity.Archive;
 import com.ray.archive.entity.BorrowRecord;
+import com.ray.archive.entity.BorrowStatus;
 import com.ray.archive.entity.User;
 import com.ray.archive.repository.ArchiveRepository;
 import com.ray.archive.repository.BorrowRecordRepository;
@@ -91,8 +92,15 @@ public class BorrowRecordServiceImpl implements BorrowRecordService {
         borrowRecord.setUser(user);
         borrowRecord.setBorrowTime(LocalDateTime.now());
         borrowRecord.setPlannedReturnTime(LocalDateTime.now().plusDays(14)); // 默认借阅期限14天
-        borrowRecord.setStatus("BORROWED");
+        borrowRecord.setStatus(BorrowStatus.valueOf(BorrowStatus.BORROWED.name()));
         borrowRecord.setPurpose(purpose);
+        // 设置借阅人信息
+        if (user.getRealName() != null) {
+            borrowRecord.setBorrower(user.getRealName());
+            borrowRecord.setBorrowerDepartment(user.getDepartment());
+        } else {
+            borrowRecord.setBorrower(user.getUsername());
+        }
 
         archive.setStatus("BORROWED");
         archiveRepository.save(archive);
@@ -106,12 +114,13 @@ public class BorrowRecordServiceImpl implements BorrowRecordService {
         BorrowRecord borrowRecord = borrowRecordRepository.findById(borrowRecordId)
                 .orElseThrow(() -> new RuntimeException("Borrow record not found"));
 
-        if (!"BORROWED".equals(borrowRecord.getStatus()) && !"OVERDUE".equals(borrowRecord.getStatus())) {
+        BorrowStatus currentStatus = borrowRecord.getStatus();
+        if (currentStatus != BorrowStatus.BORROWED && currentStatus != BorrowStatus.OVERDUE) {
             throw new RuntimeException("Invalid borrow record status");
         }
 
         borrowRecord.setReturnTime(LocalDateTime.now());
-        borrowRecord.setStatus("RETURNED");
+        borrowRecord.setStatus(BorrowStatus.valueOf(BorrowStatus.RETURNED.name()));
 
         Archive archive = borrowRecord.getArchive();
         archive.setStatus("AVAILABLE");
@@ -127,8 +136,8 @@ public class BorrowRecordServiceImpl implements BorrowRecordService {
         List<BorrowRecord> overdueRecords = borrowRecordRepository.findOverdueRecords(now);
         
         for (BorrowRecord record : overdueRecords) {
-            if ("BORROWED".equals(record.getStatus())) {
-                record.setStatus("OVERDUE");
+            if (record.getStatus() == BorrowStatus.BORROWED) {
+                record.setStatus(BorrowStatus.valueOf(BorrowStatus.OVERDUE.name()));
                 borrowRecordRepository.save(record);
             }
         }

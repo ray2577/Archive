@@ -1,6 +1,6 @@
 package com.ray.archive.service;
 
-import com.ray.archive.entity.ArchiveTemplate;
+import com.ray.archive.dto.ArchiveTemplateDTO;
 import com.itextpdf.kernel.colors.DeviceRgb;
 import com.itextpdf.kernel.events.Event;
 import com.itextpdf.kernel.events.IEventHandler;
@@ -46,7 +46,7 @@ public class PdfService {
     }
 
     public byte[] generateTemplatePdf(
-            ArchiveTemplate template,
+            ArchiveTemplateDTO template,
             String watermarkText,
             String watermarkColor,
             Float watermarkOpacity,

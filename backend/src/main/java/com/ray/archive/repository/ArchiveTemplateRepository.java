@@ -17,16 +17,14 @@ import java.util.Optional;
  */
 @Repository
 public interface ArchiveTemplateRepository extends JpaRepository<ArchiveTemplate, Long>, JpaSpecificationExecutor<ArchiveTemplate> {
-    Optional<ArchiveTemplate> findByTemplateName(String templateName);
-    
+
     List<ArchiveTemplate> findByCategory(String category);
     
-    Page<ArchiveTemplate> findByTemplateNameContaining(String name, Pageable pageable);
+    Page<ArchiveTemplate> findByNameContaining(String name, Pageable pageable);
     
     Page<ArchiveTemplate> findByCreator(String creator, Pageable pageable);
     
-    boolean existsByTemplateName(String templateName);
-    
+
     // 基本查询方法
     Optional<ArchiveTemplate> findByName(String name);
     boolean existsByName(String name);

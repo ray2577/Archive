@@ -280,4 +280,6 @@ public interface WorkflowService {
      * @return 导出资源
      */
     Resource exportWorkflowHistory(Map<String, Object> filters);
+
+    Object getWorkflows(int page, int pageSize, String name, String category, String status, String sortBy, String sortDirection);
 } 

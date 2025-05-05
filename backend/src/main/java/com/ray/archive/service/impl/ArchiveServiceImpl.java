@@ -273,7 +273,7 @@ public class ArchiveServiceImpl implements ArchiveService {
             if (file != null && !file.isEmpty()) {
                 String fileUrl = fileStorageService.storeFile(file);
                 archive.setFileUrl(fileUrl);
-                archive.setFileName(file.getOriginalFilename());
+                //archive.setFileName(file.getOriginalFilename());
                 archive.setFileSize(file.getSize());
                 archive.setFileType(file.getContentType());
             }
@@ -314,7 +314,7 @@ public class ArchiveServiceImpl implements ArchiveService {
             if (archiveDTO.getType() != null) existingArchive.setType(archiveDTO.getType());
             if (archiveDTO.getStatus() != null) existingArchive.setStatus(archiveDTO.getStatus());
             if (archiveDTO.getLocation() != null) existingArchive.setLocation(archiveDTO.getLocation());
-            if (archiveDTO.getKeywords() != null) existingArchive.setKeywords(archiveDTO.getKeywords());
+            if (archiveDTO.getKeywords() != null) existingArchive.setKeywords(String.join(",", archiveDTO.getKeywords()));
             if (archiveDTO.getArchiveDate() != null) existingArchive.setArchiveDate(archiveDTO.getArchiveDate());
             if (archiveDTO.getExpirationDate() != null) existingArchive.setExpirationDate(archiveDTO.getExpirationDate());
             
@@ -330,7 +330,7 @@ public class ArchiveServiceImpl implements ArchiveService {
                 
                 String fileUrl = fileStorageService.storeFile(file);
                 existingArchive.setFileUrl(fileUrl);
-                existingArchive.setFileName(file.getOriginalFilename());
+                //existingArchive.setFileName(file.getOriginalFilename());
                 existingArchive.setFileSize(file.getSize());
                 existingArchive.setFileType(file.getContentType());
             }
@@ -436,7 +436,9 @@ public class ArchiveServiceImpl implements ArchiveService {
             borrowRecord.setExpectedReturnDate(borrowRecordDTO.getExpectedReturnDate());
             borrowRecord.setPurpose(borrowRecordDTO.getPurpose());
             borrowRecord.setApprovedBy(borrowRecordDTO.getApprovedBy());
-            borrowRecord.setStatus(BorrowStatus.BORROWED);
+            
+            // 设置状态为BORROWED枚举
+            borrowRecord.setStatus(BorrowStatus.valueOf(BorrowStatus.BORROWED.name()));
             
             // Save borrow record
             BorrowRecord savedRecord = borrowRecordRepository.save(borrowRecord);
@@ -477,7 +479,7 @@ public class ArchiveServiceImpl implements ArchiveService {
                 .orElseThrow(() -> new ResourceNotFoundException("未找到档案ID为" + id + "的有效借阅记录"));
             
             // Update borrow record
-            activeBorrow.setStatus(BorrowStatus.RETURNED);
+            activeBorrow.setStatus(BorrowStatus.valueOf(BorrowStatus.RETURNED.name()));
             activeBorrow.setActualReturnDate(LocalDateTime.now());
             BorrowRecord updatedRecord = borrowRecordRepository.save(activeBorrow);
             
@@ -514,6 +516,7 @@ public class ArchiveServiceImpl implements ArchiveService {
                 }
                 
                 if (status != null) {
+                    // 使用字符串状态进行比较
                     BorrowStatus borrowStatus = BorrowStatus.fromValue(status);
                     if (borrowStatus != null) {
                         predicates.add(cb.equal(root.get("status"), borrowStatus));
@@ -898,10 +901,17 @@ public class ArchiveServiceImpl implements ArchiveService {
         entity.setType(dto.getType());
         entity.setStatus(dto.getStatus());
         entity.setLocation(dto.getLocation());
-        entity.setKeywords(dto.getKeywords());
+        
+        // 处理关键词列表，转换为逗号分隔的字符串
+        if (dto.getKeywords() != null && !dto.getKeywords().isEmpty()) {
+            entity.setKeywords(String.join(",", dto.getKeywords()));
+        } else {
+            entity.setKeywords("");
+        }
+        
         entity.setArchiveDate(dto.getArchiveDate());
         entity.setExpirationDate(dto.getExpirationDate());
-        entity.setCreatedBy(dto.getCreatedBy());
+        entity.setCreator(dto.getCreator());
         
         // Don't overwrite these in conversion
         // entity.setCreateTime(dto.getCreateTime());
@@ -929,7 +939,7 @@ public class ArchiveServiceImpl implements ArchiveService {
         dto.setActualReturnDate(entity.getActualReturnDate());
         dto.setPurpose(entity.getPurpose());
         dto.setApprovedBy(entity.getApprovedBy());
-        dto.setStatus(entity.getStatus().name());
+        dto.setStatus(entity.getStatusString());
         
         return dto;
     }

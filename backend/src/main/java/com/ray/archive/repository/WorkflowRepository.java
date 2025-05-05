@@ -23,6 +23,10 @@ public interface WorkflowRepository extends JpaRepository<Workflow, Long>, JpaSp
     List<Workflow> findByCategory(String category);
     Page<Workflow> findByDeletedFalse(Pageable pageable);
     
+    // 工作流键相关方法
+    Optional<Workflow> findByWorkflowKey(String workflowKey);
+    boolean existsByWorkflowKey(String workflowKey);
+    
     // 查询启用的流程
     List<Workflow> findByStatusAndDeletedFalse(String status, Pageable pageable);
     
@@ -55,21 +59,23 @@ public interface WorkflowRepository extends JpaRepository<Workflow, Long>, JpaSp
     // 检查流程编码是否存在
     boolean existsByCodeAndIdNot(String code, Long id);
 
-    Optional<Workflow> findByWorkflowKey(String workflowKey);
+    Optional<Workflow> findById(Long id);
     
     List<Workflow> findByProcessType(String processType);
     
     Page<Workflow> findByNameContaining(String name, Pageable pageable);
     
+    // 使用@Query注解明确指定查询条件，避免命名方法的字段大小写问题
+    @Query("SELECT w FROM Workflow w WHERE w.IsActive = true")
     List<Workflow> findByIsActiveTrue();
     
-    boolean existsByWorkflowKey(String workflowKey);
+    boolean existsById(Long id);
     
     @Query("SELECT w FROM Workflow w WHERE " +
            "(:name IS NULL OR w.name LIKE %:name%) AND " +
            "(:category IS NULL OR w.category = :category) AND " +
            "(:processType IS NULL OR w.processType = :processType) AND " +
-           "(:isActive IS NULL OR w.isActive = :isActive)")
+           "(:isActive IS NULL OR w.IsActive = :isActive)")
     Page<Workflow> findByFilters(
             @Param("name") String name,
             @Param("category") String category,

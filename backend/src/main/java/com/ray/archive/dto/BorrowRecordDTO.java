@@ -31,10 +31,10 @@ public class BorrowRecordDTO {
     private Long archiveId;
 
     @ApiModelProperty(value = "档案名称", example = "财务报表2023")
-    private String archiveName;
+    private String archiveTitle;
 
     @ApiModelProperty(value = "档案编号", example = "ARC20230001")
-    private String archiveCode;
+    private String archiveFileNumber;
 
     @ApiModelProperty(value = "借阅人ID", example = "1")
     private Long borrowerId;
@@ -44,25 +44,25 @@ public class BorrowRecordDTO {
     private String borrower;
 
     @ApiModelProperty(value = "借阅部门", example = "财务部")
-    private String department;
+    private String borrowerDepartment;
 
     @ApiModelProperty(value = "借阅目的", example = "财务审计")
     private String purpose;
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @ApiModelProperty(value = "借阅时间", example = "2023-03-15 14:30:00")
-    private LocalDateTime borrowTime;
+    private LocalDateTime borrowDate;
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @ApiModelProperty(value = "计划归还时间", example = "2023-03-29 14:30:00")
-    private LocalDateTime plannedReturnTime;
+    private LocalDateTime expectedReturnDate;
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @ApiModelProperty(value = "实际归还时间", example = "2023-03-25 10:15:00")
-    private LocalDateTime returnTime;
+    private LocalDateTime actualReturnDate;
 
-    @ApiModelProperty(value = "状态", example = "1", notes = "0=待审批,1=已借出,2=已归还,3=逾期未还")
-    private Integer status;
+    @ApiModelProperty(value = "状态", example = "BORROWED", notes = "可选值: BORROWED(已借出), RETURNED(已归还), OVERDUE(已逾期), LOST(已丢失), DAMAGED(已损坏), PENDING(待审批)")
+    private String status;
 
     @ApiModelProperty(value = "状态描述", example = "已借出")
     private String statusDesc;
@@ -83,4 +83,7 @@ public class BorrowRecordDTO {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @ApiModelProperty(value = "更新时间", example = "2023-03-25 10:15:00")
     private LocalDateTime updateTime;
+
+    private String approvedBy; // 审批人
+
 } 

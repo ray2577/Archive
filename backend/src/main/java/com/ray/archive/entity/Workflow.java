@@ -24,6 +24,9 @@ public class Workflow {
     @Column(nullable = false, unique = true)
     private String code;  // 流程编码
 
+    @Column(unique = true)
+    private String workflowKey;  // 工作流唯一标识键
+
     @Column(nullable = false)
     private String name;  // 流程名称
 

@@ -5,12 +5,12 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.validation.constraints.Size;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -102,4 +102,9 @@ public class ArchiveDTO {
 
     @ApiModelProperty(value = "是否删除", example = "false")
     private Boolean deleted;
+
+    // 档案日期相关
+    private LocalDateTime archiveDate;  // 归档日期
+    private LocalDateTime expirationDate;  // 过期日期
+    private LocalDateTime lastDownloadTime;  // 最后下载时间
 } 

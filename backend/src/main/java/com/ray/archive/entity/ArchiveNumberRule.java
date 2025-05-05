@@ -32,7 +32,8 @@ public class ArchiveNumberRule {
     @Column(nullable = false)
     private String category;  // 适用的档案类别
 
-    private String separator;  // 分隔符
+    @Column(name = "separator_char")
+    private String separatorChar;  // 分隔符
 
     @Column(nullable = false)
     private Boolean isActive = true;  // 是否启用

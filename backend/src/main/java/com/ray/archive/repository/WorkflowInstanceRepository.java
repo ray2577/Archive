@@ -19,9 +19,10 @@ import java.util.Optional;
 @Repository
 public interface WorkflowInstanceRepository extends JpaRepository<WorkflowInstance, Long>, JpaSpecificationExecutor<WorkflowInstance> {
     
-    Optional<WorkflowInstance> findByInstanceId(String instanceId);
+    Optional<WorkflowInstance> findByProcessInstanceId(String processInstanceId);
     
-    List<WorkflowInstance> findByWorkflowId(Long workflowId);
+    @Query("SELECT wi FROM WorkflowInstance wi WHERE wi.workflow.id = :workflowId")
+    List<WorkflowInstance> findByWorkflowId(@Param("workflowId") Long workflowId);
     
     List<WorkflowInstance> findByStatus(String status);
     
