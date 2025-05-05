@@ -13,13 +13,13 @@
         <el-button type="warning" @click="handleExport">
           <el-icon><Download /></el-icon>导出档案
         </el-button>
-        <el-tooltip content="API诊断" effect="dark" placement="top">
+        <!-- <el-tooltip content="API诊断" effect="dark" placement="top">
           <div>
             <el-button type="info" @click="diagnosisVisible = true">
               <el-icon><Service /></el-icon>
             </el-button>
           </div>
-        </el-tooltip>
+        </el-tooltip> -->
       </div>
     </div>
     
@@ -87,22 +87,22 @@
     <el-card class="filter-container">
       <el-form :inline="true" :model="searchForm" class="search-form">
         <el-form-item label="档案编号">
-          <el-input v-model="searchForm.code" placeholder="请输入档案编号" clearable />
+          <el-input style="width:118px" v-model="searchForm.code" placeholder="请输入档案编号" clearable />
         </el-form-item>
         <el-form-item label="档案名称">
-          <el-input v-model="searchForm.name" placeholder="请输入档案名称" clearable />
+          <el-input style="width:120px" v-model="searchForm.name" placeholder="请输入档案名称" clearable />
         </el-form-item>
-        <el-form-item label="档案类型">
-          <el-select v-model="searchForm.type" placeholder="请选择档案类型" clearable>
+        <el-form-item label="档案类型" >
+          <el-select style="width:150px" v-model="searchForm.type" placeholder="请选择档案类型" clearable>
             <el-option v-for="item in typeOptions" :key="item.value" :label="item.label" :value="item.value" />
           </el-select>
         </el-form-item>
         <el-form-item label="状态">
-          <el-select v-model="searchForm.status" placeholder="请选择状态" clearable>
+          <el-select style="width:120px" v-model="searchForm.status" placeholder="请选择状态" clearable>
             <el-option v-for="item in statusOptions" :key="item.value" :label="item.label" :value="item.value" />
           </el-select>
         </el-form-item>
-        <el-form-item>
+        <el-form-item style="center">
           <el-button type="primary" @click="handleSearch">
             <el-icon><Search /></el-icon>搜索
           </el-button>
@@ -1663,8 +1663,8 @@ const loadMockData = () => {
 
 /* Filter and table containers */
 .filter-container {
-  margin-bottom: 24px;
-  border-radius: 8px;
+  margin-bottom: 5px;
+  border-radius: 2px;
   box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.05);
   border: none;
 }

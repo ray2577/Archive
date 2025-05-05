@@ -71,7 +71,7 @@ public interface ArchiveRepository extends JpaRepository<Archive, Long>, JpaSpec
      * 获取类型统计
      */
     @Query("SELECT a.type as type, COUNT(a) as count FROM Archive a GROUP BY a.type")
-    Map<String, Long> countByType();
+    List<Map<String, Object>> countByType();
 
     List<Archive> findByCreator(String creator);
     Page<Archive> findByDeleted(Boolean deleted, Pageable pageable);

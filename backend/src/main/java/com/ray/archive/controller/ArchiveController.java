@@ -6,9 +6,11 @@ import com.ray.archive.dto.BorrowRecordDTO;
 import com.ray.archive.dto.PageResult;
 import com.ray.archive.dto.StatisticsDTO;
 import com.ray.archive.service.ArchiveService;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import com.ray.archive.repository.ArchiveRepository;
+import com.ray.archive.entity.Archive;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,43 +26,64 @@ import javax.validation.Valid;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 档案管理控制器
  * 提供档案相关的REST API接口
  */
 @RestController
-@RequestMapping("/api/archives")
-@Api(tags = "档案管理", description = "档案CRUD、导入导出、借阅管理、分享管理等功能")
+@RequestMapping("/archives")
+@Tag(name = "档案管理", description = "档案CRUD、导入导出、借阅管理、分享管理等功能")
 public class ArchiveController {
     private static final Logger logger = LoggerFactory.getLogger(ArchiveController.class);
 
     private final ArchiveService archiveService;
+    private final ArchiveRepository archiveRepository;
 
     @Autowired
-    public ArchiveController(ArchiveService archiveService) {
+    public ArchiveController(ArchiveService archiveService, ArchiveRepository archiveRepository) {
         this.archiveService = archiveService;
+        this.archiveRepository = archiveRepository;
+    }
+
+    /**
+     * 全局异常处理
+     */
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ApiResponse<String>> handleException(Exception e) {
+        logger.error("Controller error: ", e);
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ApiResponse.error(500, "服务器内部错误: " + e.getMessage()));
     }
 
     /**
      * 获取档案列表（带分页、排序和过滤）
      */
     @GetMapping
-    @ApiOperation("获取档案列表")
+    @Operation(summary = "获取档案列表")
     public ResponseEntity<ApiResponse<PageResult<ArchiveDTO>>> getArchiveList(
-            @ApiParam("页码") @RequestParam(defaultValue = "1") int page,
-            @ApiParam("每页条数") @RequestParam(defaultValue = "20") int pageSize,
-            @ApiParam("档案编号") @RequestParam(required = false) String fileNumber,
-            @ApiParam("档案标题") @RequestParam(required = false) String title,
-            @ApiParam("档案类型") @RequestParam(required = false) String type,
-            @ApiParam("档案状态") @RequestParam(required = false) String status,
-            @ApiParam("排序字段") @RequestParam(required = false) String sortBy,
-            @ApiParam("排序方向") @RequestParam(defaultValue = "asc") String sortDirection) {
+            @Parameter(description = "页码") @RequestParam(defaultValue = "1") int page,
+            @Parameter(description = "每页条数") @RequestParam(defaultValue = "20") int pageSize,
+            @Parameter(description = "档案编号") @RequestParam(required = false) String fileNumber,
+            @Parameter(description = "档案标题") @RequestParam(required = false) String title,
+            @Parameter(description = "档案类型") @RequestParam(required = false) String type,
+            @Parameter(description = "档案状态") @RequestParam(required = false) String status,
+            @Parameter(description = "排序字段") @RequestParam(required = false) String sortBy,
+            @Parameter(description = "排序方向") @RequestParam(defaultValue = "asc") String sortDirection) {
 
-        logger.info("获取档案列表请求 - 页码: {}, 每页条数: {}, 过滤条件: {}", page, pageSize, 
-                Map.of("fileNumber", fileNumber, "title", title, "type", type, "status", status));
+        // 使用HashMap代替Map.of()，因为Map.of()不允许null值
+        Map<String, Object> filterParams = new HashMap<>();
+        if (fileNumber != null) filterParams.put("fileNumber", fileNumber);
+        if (title != null) filterParams.put("title", title);
+        if (type != null) filterParams.put("type", type);
+        if (status != null) filterParams.put("status", status);
+        
+        logger.info("获取档案列表请求 - 页码: {}, 每页条数: {}, 过滤条件: {}", page, pageSize, filterParams);
         
         try {
+            logger.info("正在调用 archiveService.getArchives...");
             PageResult<ArchiveDTO> result = archiveService.getArchives(
                     page, pageSize, fileNumber, title, type, status, sortBy, sortDirection);
             
@@ -78,9 +101,9 @@ public class ArchiveController {
      * 通过编号获取档案
      */
     @GetMapping("/number/{fileNumber}")
-    @ApiOperation("通过编号获取档案")
+    @Operation(summary = "通过编号获取档案")
     public ResponseEntity<ApiResponse<ArchiveDTO>> getArchiveByNumber(
-            @ApiParam("档案编号") @PathVariable String fileNumber) {
+            @Parameter(description = "档案编号") @PathVariable String fileNumber) {
         
         logger.info("通过编号获取档案请求 - 编号: {}", fileNumber);
         
@@ -108,9 +131,9 @@ public class ArchiveController {
      * 获取档案详情
      */
     @GetMapping("/{id}")
-    @ApiOperation("获取档案详情")
+    @Operation(summary = "获取档案详情")
     public ResponseEntity<ApiResponse<ArchiveDTO>> getArchiveDetail(
-            @ApiParam("档案ID") @PathVariable Long id) {
+            @Parameter(description = "档案ID") @PathVariable Long id) {
         
         logger.info("获取档案详情请求 - ID: {}", id);
         
@@ -138,10 +161,10 @@ public class ArchiveController {
      * 创建档案
      */
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @ApiOperation("创建新档案")
+    @Operation(summary = "创建新档案")
     public ResponseEntity<ApiResponse<ArchiveDTO>> createArchive(
-            @ApiParam("档案数据") @Valid @RequestPart("archive") ArchiveDTO archiveDTO,
-            @ApiParam("档案文件") @RequestPart(value = "file", required = false) MultipartFile file) {
+            @Parameter(description = "档案数据") @Valid @RequestPart("archive") ArchiveDTO archiveDTO,
+            @Parameter(description = "档案文件") @RequestPart(value = "file", required = false) MultipartFile file) {
         
         logger.info("创建档案请求 - 档案标题: {}", archiveDTO.getTitle());
         
@@ -164,11 +187,11 @@ public class ArchiveController {
      * 更新档案
      */
     @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @ApiOperation("更新档案")
+    @Operation(summary = "更新档案")
     public ResponseEntity<ApiResponse<ArchiveDTO>> updateArchive(
-            @ApiParam("档案ID") @PathVariable Long id,
-            @ApiParam("档案数据") @Valid @RequestPart("archive") ArchiveDTO archiveDTO,
-            @ApiParam("档案文件") @RequestPart(value = "file", required = false) MultipartFile file) {
+            @Parameter(description = "档案ID") @PathVariable Long id,
+            @Parameter(description = "档案数据") @Valid @RequestPart("archive") ArchiveDTO archiveDTO,
+            @Parameter(description = "档案文件") @RequestPart(value = "file", required = false) MultipartFile file) {
         
         logger.info("更新档案请求 - ID: {}", id);
         
@@ -196,9 +219,9 @@ public class ArchiveController {
      * 删除档案
      */
     @DeleteMapping("/{id}")
-    @ApiOperation("删除档案")
+    @Operation(summary = "删除档案")
     public ResponseEntity<ApiResponse<Boolean>> deleteArchive(
-            @ApiParam("档案ID") @PathVariable Long id) {
+            @Parameter(description = "档案ID") @PathVariable Long id) {
         
         logger.info("删除档案请求 - ID: {}", id);
         
@@ -226,9 +249,9 @@ public class ArchiveController {
      * 批量删除档案
      */
     @DeleteMapping("/batch")
-    @ApiOperation("批量删除档案")
+    @Operation(summary = "批量删除档案")
     public ResponseEntity<ApiResponse<Integer>> batchDeleteArchives(
-            @ApiParam("档案ID列表") @RequestBody List<Long> ids) {
+            @Parameter(description = "档案ID列表") @RequestBody List<Long> ids) {
         
         logger.info("批量删除档案请求 - IDs: {}", ids);
         
@@ -249,7 +272,7 @@ public class ArchiveController {
      * 获取统计数据
      */
     @GetMapping("/statistics")
-    @ApiOperation("获取档案统计数据")
+    @Operation(summary = "获取档案统计数据")
     public ResponseEntity<ApiResponse<StatisticsDTO>> getStatistics() {
         logger.info("获取档案统计数据请求");
         
@@ -270,10 +293,10 @@ public class ArchiveController {
      * 借阅档案
      */
     @PostMapping("/{id}/borrow")
-    @ApiOperation("借阅档案")
+    @Operation(summary = "借阅档案")
     public ResponseEntity<ApiResponse<BorrowRecordDTO>> borrowArchive(
-            @ApiParam("档案ID") @PathVariable Long id,
-            @ApiParam("借阅信息") @Valid @RequestBody BorrowRecordDTO borrowRecord) {
+            @Parameter(description = "档案ID") @PathVariable Long id,
+            @Parameter(description = "借阅信息") @Valid @RequestBody BorrowRecordDTO borrowRecord) {
         
         logger.info("借阅档案请求 - 档案ID: {}, 借阅人: {}", id, borrowRecord.getBorrower());
         
@@ -297,9 +320,9 @@ public class ArchiveController {
      * 归还档案
      */
     @PostMapping("/{id}/return")
-    @ApiOperation("归还档案")
+    @Operation(summary = "归还档案")
     public ResponseEntity<ApiResponse<BorrowRecordDTO>> returnArchive(
-            @ApiParam("档案ID") @PathVariable Long id) {
+            @Parameter(description = "档案ID") @PathVariable Long id) {
         
         logger.info("归还档案请求 - 档案ID: {}", id);
         
@@ -320,13 +343,13 @@ public class ArchiveController {
      * 获取借阅记录
      */
     @GetMapping("/borrow-records")
-    @ApiOperation("获取借阅记录")
+    @Operation(summary = "获取借阅记录")
     public ResponseEntity<ApiResponse<PageResult<BorrowRecordDTO>>> getBorrowRecords(
-            @ApiParam("页码") @RequestParam(defaultValue = "1") int page,
-            @ApiParam("每页条数") @RequestParam(defaultValue = "20") int pageSize,
-            @ApiParam("档案ID") @RequestParam(required = false) Long archiveId,
-            @ApiParam("借阅人") @RequestParam(required = false) String borrower,
-            @ApiParam("状态") @RequestParam(required = false) Integer status) {
+            @Parameter(description = "页码") @RequestParam(defaultValue = "1") int page,
+            @Parameter(description = "每页条数") @RequestParam(defaultValue = "20") int pageSize,
+            @Parameter(description = "档案ID") @RequestParam(required = false) Long archiveId,
+            @Parameter(description = "借阅人") @RequestParam(required = false) String borrower,
+            @Parameter(description = "状态") @RequestParam(required = false) Integer status) {
         
         logger.info("获取借阅记录请求 - 页码: {}, 每页条数: {}, 档案ID: {}, 借阅人: {}, 状态: {}", 
                 page, pageSize, archiveId, borrower, status);
@@ -349,10 +372,10 @@ public class ArchiveController {
      * 分享档案
      */
     @PostMapping("/{id}/share")
-    @ApiOperation("分享档案")
+    @Operation(summary = "分享档案")
     public ResponseEntity<ApiResponse<String>> shareArchive(
-            @ApiParam("档案ID") @PathVariable Long id,
-            @ApiParam("过期天数") @RequestParam(defaultValue = "7") Integer expireDays) {
+            @Parameter(description = "档案ID") @PathVariable Long id,
+            @Parameter(description = "过期天数") @RequestParam(defaultValue = "7") Integer expireDays) {
         
         logger.info("分享档案请求 - 档案ID: {}, 过期天数: {}", id, expireDays);
         
@@ -373,8 +396,8 @@ public class ArchiveController {
      * 下载档案
      */
     @GetMapping("/{id}/download")
-    @ApiOperation("下载档案")
-    public ResponseEntity<Resource> downloadArchive(@PathVariable Long id) {
+    @Operation(summary = "下载档案")
+    public ResponseEntity<Resource> downloadArchive(@Parameter(description = "档案ID") @PathVariable Long id) {
         logger.info("下载档案请求 - 档案ID: {}", id);
         
         try {
@@ -394,7 +417,7 @@ public class ArchiveController {
      * 导出档案
      */
     @PostMapping("/export")
-    @ApiOperation("导出档案")
+    @Operation(summary = "导出档案")
     public ResponseEntity<Resource> exportArchives(@RequestBody(required = false) Map<String, Object> filters) {
         logger.info("导出档案请求 - 过滤条件: {}", filters);
         
@@ -419,7 +442,7 @@ public class ArchiveController {
      * 批量导出档案
      */
     @PostMapping("/batch-export")
-    @ApiOperation("批量导出档案")
+    @Operation(summary = "批量导出档案")
     public ResponseEntity<Resource> batchExportArchives(@RequestBody List<Long> ids) {
         logger.info("批量导出档案请求 - IDs: {}", ids);
         
@@ -440,7 +463,7 @@ public class ArchiveController {
      * 导入档案
      */
     @PostMapping("/import")
-    @ApiOperation("导入档案")
+    @Operation(summary = "导入档案")
     public ResponseEntity<ApiResponse<Integer>> importArchives(@RequestParam("file") MultipartFile file) {
         logger.info("导入档案请求 - 文件名: {}", file.getOriginalFilename());
         
@@ -461,7 +484,7 @@ public class ArchiveController {
      * 健康检查接口
      */
     @GetMapping("/health-check")
-    @ApiOperation("API健康检查")
+    @Operation(summary = "API健康检查")
     public ResponseEntity<ApiResponse<Map<String, Object>>> healthCheck() {
         logger.info("API健康检查请求");
         
@@ -472,5 +495,91 @@ public class ArchiveController {
         );
         
         return ResponseEntity.ok(ApiResponse.success(healthData));
+    }
+
+    /**
+     * 健康检查
+     */
+    @GetMapping("/test")
+    @Operation(summary = "测试接口")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> test() {
+        logger.info("测试接口被调用");
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", "ok");
+        response.put("timestamp", System.currentTimeMillis());
+        response.put("message", "档案系统API测试成功");
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    /**
+     * 诊断接口 - 检查档案列表功能
+     */
+    @GetMapping("/diagnostic")
+    @Operation(summary = "诊断接口")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> diagnostic() {
+        logger.info("档案列表诊断接口被调用");
+        
+        Map<String, Object> diagnosticInfo = new HashMap<>();
+        diagnosticInfo.put("controllerStatus", "active");
+        diagnosticInfo.put("timestamp", System.currentTimeMillis());
+        
+        try {
+            // 尝试获取数据库连接状态或服务可用性
+            boolean serviceAvailable = archiveService != null;
+            diagnosticInfo.put("serviceAvailable", serviceAvailable);
+            
+            return ResponseEntity.ok(ApiResponse.success(diagnosticInfo));
+        } catch (Exception e) {
+            logger.error("诊断检查失败", e);
+            diagnosticInfo.put("error", e.getMessage());
+            diagnosticInfo.put("stackTrace", e.getStackTrace()[0].toString());
+            return ResponseEntity.ok(ApiResponse.success(diagnosticInfo));
+        }
+    }
+
+    /**
+     * 直接测试存储库访问
+     */
+    @GetMapping("/repository-test")
+    @Operation(summary = "测试数据库连接")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> repositoryTest() {
+        logger.info("测试数据库连接");
+        
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            // 测试基本查询
+            long count = archiveRepository.count();
+            response.put("totalCount", count);
+            
+            // 尝试获取前10条记录
+            List<Archive> archives = archiveRepository.findAll()
+                .stream()
+                .limit(10)
+                .collect(Collectors.toList());
+            
+            response.put("sampleCount", archives.size());
+            response.put("firstArchiveTitle", archives.isEmpty() ? "无记录" : archives.get(0).getTitle());
+            response.put("status", "ok");
+            
+            logger.info("数据库连接正常，查询到{}条记录", count);
+            return ResponseEntity.ok(ApiResponse.success(response));
+        } catch (Exception e) {
+            logger.error("数据库测试失败", e);
+            response.put("status", "error");
+            response.put("error", e.getMessage());
+            response.put("errorType", e.getClass().getName());
+            return ResponseEntity.ok(ApiResponse.success(response));
+        }
+    }
+
+    /**
+     * 基础健康检查（不需要数据库访问）
+     */
+    @GetMapping("/basic-health")
+    @Operation(summary = "基础健康检查")
+    public ResponseEntity<String> basicHealth() {
+        logger.info("基础健康检查被调用");
+        return ResponseEntity.ok("Controller is responding - " + System.currentTimeMillis());
     }
 } 

@@ -1,79 +1,83 @@
 package com.ray.archive.controller;
 
-import com.ray.archive.entity.Archive;
-import com.ray.archive.repository.ArchiveRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
- * 测试路径映射的控制器
+ * 简单诊断控制器
+ * 用于系统健康检查和问题诊断
  */
 @RestController
-@RequestMapping("/debug")
+@RequestMapping("/test")
 public class TestController {
-
-    private final ArchiveRepository archiveRepository;
-    private final JdbcTemplate jdbcTemplate;
-
-    @Autowired
-    public TestController(ArchiveRepository archiveRepository, JdbcTemplate jdbcTemplate) {
-        this.archiveRepository = archiveRepository;
-        this.jdbcTemplate = jdbcTemplate;
+    
+    private static final Logger logger = LoggerFactory.getLogger(TestController.class);
+    
+    @Value("${spring.datasource.url:unknown}")
+    private String dbUrl;
+    
+    @Autowired(required = false)
+    private JdbcTemplate jdbcTemplate;
+    
+    /**
+     * 简单健康检查 - 不需要数据库
+     */
+    @GetMapping("/health")
+    public ResponseEntity<String> health() {
+        logger.info("Health check called");
+        return ResponseEntity.ok("Service is up and running at " + System.currentTimeMillis());
     }
-
-    @GetMapping("/db-status")
-    public ResponseEntity<Map<String, Object>> getDatabaseStatus() {
+    
+    /**
+     * 应用信息
+     */
+    @GetMapping("/info")
+    public ResponseEntity<Map<String, Object>> info() {
+        logger.info("Info check called");
+        Map<String, Object> info = new HashMap<>();
+        info.put("version", "1.0.0");
+        info.put("dbConfigured", dbUrl);
+        info.put("time", System.currentTimeMillis());
+        info.put("hasJdbcTemplate", jdbcTemplate != null);
+        
+        return ResponseEntity.ok(info);
+    }
+    
+    /**
+     * 数据库连接测试
+     */
+    @GetMapping("/db-check")
+    public ResponseEntity<Map<String, Object>> dbCheck() {
+        logger.info("Database check called");
         Map<String, Object> result = new HashMap<>();
+        result.put("dbUrl", dbUrl);
         
-        // 检查archives表是否存在
-        List<String> tables = jdbcTemplate.queryForList("SHOW TABLES", String.class);
-        result.put("tables", tables);
-        
-        // 检查archives表中的记录数
-        if (tables.contains("archives")) {
-            Long archiveCount = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM archives", Long.class);
-            result.put("archiveCount", archiveCount);
-            
-            // 获取一些示例记录
-            if (archiveCount > 0) {
-                List<Map<String, Object>> sampleRecords = jdbcTemplate.queryForList("SELECT * FROM archives LIMIT 3");
-                result.put("sampleRecords", sampleRecords);
-            }
+        if (jdbcTemplate == null) {
+            result.put("status", "error");
+            result.put("message", "JdbcTemplate not available");
+            return ResponseEntity.ok(result);
         }
         
-        // 使用JPA仓库查询
         try {
-            long jpaCount = archiveRepository.count();
-            result.put("jpaArchiveCount", jpaCount);
-            
-            Page<Archive> firstPage = archiveRepository.findAll(PageRequest.of(0, 5));
-            List<Object> simplifiedArchives = new ArrayList<>();
-            
-            for (Archive archive : firstPage.getContent()) {
-                Map<String, Object> simpleArchive = new HashMap<>();
-                simpleArchive.put("id", archive.getId());
-                simpleArchive.put("fileNumber", archive.getFileNumber());
-                simpleArchive.put("title", archive.getTitle());
-                simpleArchive.put("status", archive.getStatus());
-                simplifiedArchives.add(simpleArchive);
-            }
-            
-            result.put("jpaArchives", simplifiedArchives);
-            result.put("totalPages", firstPage.getTotalPages());
-            result.put("totalElements", firstPage.getTotalElements());
+            Integer dbStatus = jdbcTemplate.queryForObject("SELECT 1", Integer.class);
+            result.put("status", "ok");
+            result.put("dbConnected", dbStatus != null && dbStatus == 1);
+            result.put("message", "Database connection successful");
         } catch (Exception e) {
-            result.put("jpaError", e.getMessage());
+            logger.error("Database connection test failed", e);
+            result.put("status", "error");
+            result.put("message", "Database connection failed: " + e.getMessage());
+            result.put("errorType", e.getClass().getName());
         }
         
         return ResponseEntity.ok(result);

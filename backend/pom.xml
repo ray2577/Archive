@@ -32,8 +32,7 @@
     <properties>
         <java.version>19</java.version>
         <spring-ai.version>1.0.0-M6</spring-ai.version>
-        <swagger.fox.version>3.0.0</swagger.fox.version>
-        <swagger.core.version>1.6.2</swagger.core.version>
+        <springdoc.version>2.5.0</springdoc.version>
         <poi.version>4.1.2</poi.version>
         <hibernate.version>6.2.13.Final</hibernate.version>
     </properties>
@@ -184,25 +183,23 @@
             <scope>compile</scope>
         </dependency>
         <!--  Swagger -->
-        <!-- Swagger UI -->
+        <!-- Replace Springfox with SpringDoc OpenAPI -->
         <dependency>
-            <groupId>io.springfox</groupId>
-            <artifactId>springfox-swagger-ui</artifactId>
-            <version>${swagger.fox.version}</version>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+            <version>${springdoc.version}</version>
         </dependency>
-
-        <!-- Swagger -->
+        <!-- If you need Jakarta validation support -->
         <dependency>
-            <groupId>io.springfox</groupId>
-            <artifactId>springfox-swagger2</artifactId>
-            <version>${swagger.fox.version}</version>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-common</artifactId>
+            <version>${springdoc.version}</version>
         </dependency>
-
         <!-- Swagger 依赖配置 -->
         <dependency>
             <groupId>io.swagger</groupId>
             <artifactId>swagger-annotations</artifactId>
-            <version>${swagger.core.version}</version>
+            <version>${springdoc.version}</version>
         </dependency>
         <dependency>
             <groupId>org.hibernate.validator</groupId>
@@ -233,6 +230,11 @@
         <dependency>
             <groupId>jakarta.validation</groupId>
             <artifactId>jakarta.validation-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.swagger</groupId>
+            <artifactId>swagger-annotations</artifactId>
+            <version>1.6.2</version>
         </dependency>
     </dependencies>
     <dependencyManagement>

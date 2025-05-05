@@ -565,8 +565,18 @@ public class ArchiveServiceImpl implements ArchiveService {
             LocalDateTime startOfMonth = LocalDateTime.now().withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0);
             long newThisMonth = archiveRepository.countByCreateTimeAfter(startOfMonth);
             
-            // Get count by type
-            Map<String, Long> typeStats = archiveRepository.countByType();
+            // Get count by type - 修复类型统计处理
+            List<Map<String, Object>> typeStatsList = archiveRepository.countByType();
+            Map<String, Long> typeStats = new HashMap<>();
+            
+            // 将List<Map>转换为Map<String, Long>
+            for (Map<String, Object> entry : typeStatsList) {
+                String type = (String) entry.get("type");
+                if (type != null) {
+                    Long count = ((Number) entry.get("count")).longValue();
+                    typeStats.put(type, count);
+                }
+            }
             
             // Get recent archives
             List<ArchiveDTO> recentArchives = archiveRepository.findTop5ByOrderByCreateTimeDesc()
